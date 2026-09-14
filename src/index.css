@@ -69,6 +69,7 @@ img{display:block}
 .hdr.hdr-expanded { height: 170px; box-shadow: 0 4px 30px rgba(0,0,0,0.08); background: #fff !important; }
 
 .hdr-search-container { position: absolute; left: 50%; transform: translateX(-50%); top: 16px; width: 100%; max-width: 850px; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+.hdr-search-inner { display: flex; align-items: center; justify-content: center; gap: 12px; pointer-events: none; width: auto; }
 
 /* Small Pill */
 .search-pill-small { display: flex; align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 40px; padding: 6px 6px 6px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: auto; }
@@ -908,7 +909,7 @@ img{display:block}
 
 /* ---------- Results Page ---------- */
 .results { display: flex; flex-direction: column; height: 100vh; padding-top: 80px; }
-.mf-toggle-btn-header { display: none; align-items: center; justify-content: center; width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--line); border-radius: 50%; color: var(--ink); background: #fff; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: all 0.25s ease; }
+.mf-toggle-btn-header { display: none; align-items: center; justify-content: center; width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--line); border-radius: 50%; color: var(--ink); background: #fff; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: all 0.25s ease; pointer-events: auto; }
 .filter-bar { display: flex; align-items: center; gap: 12px; padding: 16px 24px; border-bottom: 1px solid var(--line); overflow-x: auto; flex-shrink: 0; background: #fff; z-index: 20; position: relative; }
 .chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 99px; border: 1px solid var(--line); background: #fff; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
 .chip:hover { border-color: var(--ink-2); }
@@ -1371,6 +1372,8 @@ select.pill-sel:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--accent
 }
 
 @media (max-width: 1024px) {
+  .hdr-search-inner { width: 100%; justify-content: space-between; }
+  .hdr-search-inner .search-pill-small { flex: 1; }
   .mf-toggle-btn-header { display: flex; }
   .nq-searchbar { display: none; flex-direction: column; align-items: stretch; padding: 16px; gap: 12px; background: #fff; position: absolute; top: 0; left: 0; right: 0; z-index: 50; border-radius: 0; border-bottom: 1px solid var(--line); box-shadow: 0 8px 24px rgba(0,0,0,0.1); margin: 0; }
   .nq-searchbar.show-mobile { display: flex; }
