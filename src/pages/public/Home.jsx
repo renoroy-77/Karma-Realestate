@@ -1,31 +1,57 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useRef } from 'react';
 import { AppDataContext, LOCALITIES } from '../../context/AppDataContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
 import ClientsSectionDemo from '../../components/ui/testimonial-card';
 
-function PropertyCard({ p }) {
+function PropertyCard({ p, idx = 0 }) {
+  const rating = (4.5 + Math.random() * 0.5).toFixed(2);
   return (
     <Link to={`/kannur/${p.type.toLowerCase()}/${p.id}`} className="pcard">
       <div className="pc-media">
-        <span className={`pc-tag ${p.purpose === 'Sale' ? 'sale' : 'rent'}`}>For {p.purpose.toLowerCase()}</span>
+        <span className="pc-tag">Guest favourite</span>
+        <button className="pc-heart" onClick={(e) => {e.preventDefault();}} aria-label="Add to wishlist">
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation" focusable="false"><path d="M16 28c7-4.73 14-10 14-17a6.98 6.98 0 0 0-7-6.94c-2.8 0-5.46 1.4-6.98 3.73C14.54 5.4 11.88 4 9.08 4 5.2 4 2 7.15 2 11.08c0 7 7 12.27 14 17z"></path></svg>
+        </button>
         <div className="pc-track">
-          <img src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt={p.title} />
+          <img src={p.imgs?.[idx % (p.imgs?.length || 1)] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt={p.title} />
         </div>
       </div>
       <div className="pc-body">
-        <div className="pc-top">
-          <div className="pc-title">{p.title}</div>
-          <span className={`badge-status ${p.status === 'Available' ? 'avail' : 'nego'}`}>{p.status}</span>
+        <div className="pc-title">{p.type} in {p.loc}</div>
+        <div className="pc-meta" style={{ color: '#717171' }}>
+          <span style={{ color: '#222' }}>₹{p.price} L {p.status === 'rent' ? '/ month' : ''}</span> &middot; ★ {rating}
         </div>
-        <div className="pc-loc">{p.loc}, Kannur</div>
-        <div className="pc-meta">
-          {[p.type, p.land || p.area, p.beds ? p.beds + ' BHK' : null].filter(Boolean).join(' · ')}
-        </div>
-        <div className="pc-price">₹{p.price} L {p.nego && <small>· Negotiable</small>}</div>
       </div>
     </Link>
+  );
+}
+
+function CardCarousel({ children }) {
+  const scrollRef = useRef(null);
+
+  const scroll = (dir) => {
+    if (scrollRef.current) {
+      const amt = scrollRef.current.clientWidth * 0.75;
+      scrollRef.current.scrollBy({ left: dir === 'left' ? -amt : amt, behavior: 'smooth' });
+    }
+  };
+
+  return (
+    <div className="carousel-wrap">
+      <button className="c-nav left" onClick={() => scroll('left')} aria-label="Previous">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div className="carousel" ref={scrollRef}>
+        <div className="card-row">
+          {children}
+        </div>
+      </div>
+      <button className="c-nav right" onClick={() => scroll('right')} aria-label="Next">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
   );
 }
 
@@ -53,52 +79,7 @@ export default function Home() {
         <div className="hero-left">
           <div className="hero-left-content">
             <h1 className="hero-h1">Find Your Perfect Property in Kerala</h1>
-            <p className="hero-desc">Discover 1000+ verified properties across Kerala.<br/>Search by location, budget & lifestyle.</p>
-            
-            <div className="hero-search">
-              <div className="hs-input">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input type="text" placeholder="Search location, city or locality" value={loc} onChange={e => setLoc(e.target.value)} />
-              </div>
-              <div className="hs-divider"></div>
-              <div className="hs-select">
-                <select value={purpose} onChange={e => setPurpose(e.target.value)}>
-                  <option value="">Property Type</option>
-                  <option value="Sale">Buy</option>
-                  <option value="Rent">Rent</option>
-                  <option value="Lease">Lease</option>
-                </select>
-              </div>
-              <div className="hs-divider"></div>
-              <div className="hs-select">
-                <select>
-                  <option value="">Budget</option>
-                  <option value="1">Under ₹50 L</option>
-                  <option value="2">₹50 L - ₹1 Cr</option>
-                  <option value="3">Above ₹1 Cr</option>
-                </select>
-              </div>
-              <button className="hs-btn" onClick={handleSearch}>Search</button>
-            </div>
-
-            <div className="hero-features">
-              <div className="hf-item">
-                <div className="hf-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div>
-                <div className="hf-text"><b>Map Based Search</b><span>Explore properties on interactive map</span></div>
-              </div>
-              <div className="hf-item">
-                <div className="hf-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></div>
-                <div className="hf-text"><b>Verified Listings</b><span>100% verified properties</span></div>
-              </div>
-              <div className="hf-item">
-                <div className="hf-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 21h18"/><path d="M9 8h1"/><path d="M9 12h1"/><path d="M9 16h1"/><path d="M14 8h1"/><path d="M14 12h1"/><path d="M14 16h1"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg></div>
-                <div className="hf-text"><b>Wide Range</b><span>Residential, Commercial & Land</span></div>
-              </div>
-              <div className="hf-item">
-                <div className="hf-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></div>
-                <div className="hf-text"><b>Local Support</b><span>Expert agents across Kerala</span></div>
-              </div>
-            </div>
+            <p className="hero-desc" style={{ marginBottom: '40px' }}>Discover 1000+ verified properties across Kerala.<br/>Search by location, budget & lifestyle.</p>
 
             <div className="hero-locs">
               <h3 className="hl-title">Popular Locations</h3>
@@ -123,8 +104,26 @@ export default function Home() {
                   <img src="https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=200&q=80" alt="Mattannur" />
                   <span>Mattannur</span>
                 </div>
+                <div className="hl-card">
+                  <img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=200&q=80" alt="Kannur City" />
+                  <span>Kannur City</span>
+                </div>
+                <div className="hl-card">
+                  <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=200&q=80" alt="Kuthuparamba" />
+                  <span>Kuthuparamba</span>
+                </div>
                 <button className="hl-next"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg></button>
               </div>
+            </div>
+            
+            <div className="hero-cta">
+              <Link to="/results" className="hero-cta-btn" style={{ background: 'var(--blue)', color: '#fff', boxShadow: '0 8px 20px rgba(255, 56, 92, 0.25)' }}>
+                Explore Properties
+              </Link>
+              <a href="https://wa.me/919995797450" target="_blank" rel="noreferrer" className="hero-cta-btn" style={{ background: '#25D366', color: '#fff', boxShadow: '0 8px 20px rgba(37, 211, 102, 0.25)' }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12.01 2.01a10 10 0 0 0-8.52 15.27L2 22l4.87-1.46a10 10 0 1 0 5.14-18.53zm0 18A8 8 0 0 1 7.2 18.9l-.35-.2-3.6 1.08 1.1-3.5-.2-.36A8 8 0 1 1 12.01 20zm4.27-5.83c-.23-.12-1.38-.68-1.59-.76-.22-.08-.38-.12-.54.12s-.6 .76-.74.92c-.14.16-.27.18-.5.06a6.56 6.56 0 0 1-1.92-1.18 7.2 7.2 0 0 1-1.33-1.66c-.14-.24-.01-.37.1-.49.1-.11.23-.27.35-.4a1.6 1.6 0 0 0 .15-.25c.08-.16.04-.3-.02-.42s-.54-1.3-.74-1.78c-.2-.47-.4-.4-.54-.41-.14 0-.3-.01-.46-.01a.89.89 0 0 0-.64.3c-.22.24-.85.83-.85 2.02s.87 2.34.99 2.5c.12.16 1.7 2.6 4.12 3.64 1.48.64 2.15.7 2.94.59.56-.08 1.38-.56 1.57-1.1.2-.54.2-.1.14-.11z"/></svg>
+                WhatsApp
+              </a>
             </div>
           </div>
         </div>
@@ -175,66 +174,29 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section" id="types" style={{ paddingBottom: '72px' }}>
-        <div className="sec-head"><div><h2>Browse by type</h2><p>What are you looking for?</p></div></div>
-        <div className="type-row">
-          <Link to="/results" className="type-card">
-            <div className="t-ic">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/></svg>
-            </div>
-            <b>Land</b><span>4 listings</span>
-          </Link>
-          <Link to="/results" className="type-card">
-            <div className="t-ic">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            </div>
-            <b>House</b><span>5 listings</span>
-          </Link>
-          <Link to="/results" className="type-card">
-            <div className="t-ic">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M16 10h.01M8 10h.01M8 14h.01M12 14h.01M16 14h.01"/></svg>
-            </div>
-            <b>Flat</b><span>2 listings</span>
-          </Link>
-          <Link to="/results" className="type-card">
-            <div className="t-ic">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 17v1c0 .5-.5 1-1 1H3c-.5 0-1-.5-1-1v-1"/><path d="M4 14V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7"/><path d="M2 14h20"/></svg>
-            </div>
-            <b>Warehouse</b><span>1 listings</span>
-          </Link>
-          <Link to="/results" className="type-card">
-            <div className="t-ic">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-            </div>
-            <b>Commercial</b><span>2 listings</span>
-          </Link>
-        </div>
-      </section>
-
       <section className="section" id="featured">
-        <div className="sec-head">
-          <div><h2>Featured properties</h2><p>Hand-picked by our team this week</p></div>
-          <Link to="/results" className="sec-link" style={{ color: 'var(--blue)', fontWeight: 700, textDecoration: 'none' }}>View all →</Link>
+        <div className="sec-head" style={{ justifyContent: 'flex-start', gap: '12px' }}>
+          <h2>Based on your Kannur search</h2>
+          <Link to="/results" className="sec-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg></Link>
         </div>
-        <div className="card-row">
-          {props.filter(p => p.featured).slice(0, 4).map(p => (
-            <PropertyCard key={p.id} p={p} />
+        <CardCarousel>
+          {[...props.filter(p => p.featured), ...props.filter(p => p.featured), ...props].slice(0, 14).map((p, i) => (
+            <PropertyCard key={`${p.id}-${i}`} p={p} idx={i} />
           ))}
-        </div>
+        </CardCarousel>
       </section>
 
-      <section className="section" id="recent" style={{ paddingBottom: '72px' }}>
-        <div className="sec-head">
-          <div><h2>Recently added</h2><p>Fresh on the market in Kannur</p></div>
+      <section className="section" id="recent" style={{ paddingBottom: '24px' }}>
+        <div className="sec-head" style={{ justifyContent: 'flex-start', gap: '12px' }}>
+          <h2>Kannur homes with free cancellation</h2>
+          <Link to="/results" className="sec-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg></Link>
         </div>
-        <div className="card-row">
-          {props.slice(0, 4).map(p => (
-            <PropertyCard key={p.id} p={p} />
+        <CardCarousel>
+          {[...props, ...props, ...props].slice(0, 14).map((p, i) => (
+            <PropertyCard key={`${p.id}-${i}`} p={p} idx={i} />
           ))}
-        </div>
+        </CardCarousel>
       </section>
-
-
 
       <ClientsSectionDemo />
     </>

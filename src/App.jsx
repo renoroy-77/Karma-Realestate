@@ -11,6 +11,7 @@ import PropertyDetail from './pages/public/PropertyDetail'
 import Wishlist from './pages/public/Wishlist'
 import About from './pages/public/About'
 import PrivacyPolicy from './pages/public/PrivacyPolicy'
+import PropertiesPage from './pages/public/PropertiesPage'
 
 // Admin Pages
 import AdminLogin from './pages/admin/AdminLogin'
@@ -29,6 +30,7 @@ function App() {
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/about" element={<About />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/properties" element={<PropertiesPage />} />
         <Route path="/kannur/:type/:slug" element={<PropertyDetail />} />
       </Route>
 

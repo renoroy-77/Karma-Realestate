@@ -55,15 +55,23 @@ export default function Results() {
   
   const initialPurpose = searchParams.get('purpose') || 'All';
   const initialLoc = searchParams.get('loc') || '';
+  const initialType = searchParams.get('type') || 'All';
+  const initialPrice = searchParams.get('price') || 'All';
 
   const [filterPurpose, setFilterPurpose] = useState(initialPurpose);
   const [filterLoc, setFilterLoc] = useState(initialLoc);
-
-  const [filterType, setFilterType] = useState('All');
-  const [filterPrice, setFilterPrice] = useState('All');
+  const [filterType, setFilterType] = useState(initialType);
+  const [filterPrice, setFilterPrice] = useState(initialPrice);
   const [filterBaths, setFilterBaths] = useState('All');
   const [activeMarker, setActiveMarker] = useState(null);
   const [sortBy, setSortBy] = useState('Newest');
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  useEffect(() => {
+    const handleToggle = () => setShowMobileFilters(prev => !prev);
+    window.addEventListener('toggle-filters', handleToggle);
+    return () => window.removeEventListener('toggle-filters', handleToggle);
+  }, []);
 
   const filteredProps = props.filter(p => {
     const pMatch = filterPurpose === 'All' || p.purpose === filterPurpose;
@@ -136,7 +144,7 @@ export default function Results() {
       </Helmet>
       <section className="results nq-theme">
       {/* Search Bar matching NestQuest */}
-      <div className="nq-searchbar">
+      <div className={`nq-searchbar ${showMobileFilters ? 'show-mobile' : ''}`}>
         <label className="nq-search-item">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
           <select value={filterLoc} onChange={e => setFilterLoc(e.target.value)} className="nq-sel">

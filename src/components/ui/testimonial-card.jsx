@@ -1,176 +1,148 @@
 import * as React from "react";
-import { motion } from "framer-motion";
 import { Star } from "lucide-react";
-
 import { cn } from "../../lib/utils";
-import { Button } from "./button";
-import { Card, CardContent } from "./card";
 
-// StatCard using shadcn variables
-const StatCard = ({ value, label }) => (
-  <Card className="bg-muted/50 border-border text-center rounded-xl">
-    <CardContent className="p-4">
-      <p className="text-2xl md:text-3xl font-bold text-foreground">{value}</p>
-      <p className="text-xs md:text-sm text-muted-foreground">{label}</p>
-    </CardContent>
-  </Card>
+const FeaturedTestimonial = ({ testimonial }) => (
+  <div className="relative rounded-3xl overflow-hidden h-full min-h-[340px] md:min-h-[400px] lg:min-h-[500px] flex flex-col justify-end p-6 md:p-8 text-white">
+    {/* Background Image */}
+    <div 
+      className="absolute inset-0 bg-cover bg-center"
+      style={{ backgroundImage: `url(${testimonial.bgImage})` }}
+    />
+    {/* Gradient Overlay */}
+    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+    
+    {/* Content */}
+    <div className="relative z-10 flex flex-col h-full justify-end">
+      <p className="text-base md:text-xl font-medium leading-relaxed mb-6 md:mb-8">
+        {testimonial.quote}
+      </p>
+      
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <img 
+            src={testimonial.avatarSrc} 
+            alt={testimonial.name}
+            className="w-12 h-12 rounded-full border-2 border-white/20 object-cover"
+          />
+          <span className="font-semibold">{testimonial.name}</span>
+        </div>
+        {/* Quote Icon */}
+        <div className="opacity-30">
+          <svg className="w-12 h-12 md:w-16 md:h-16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
 );
 
-// A sticky testimonial card for the stacking effect.
-const StickyTestimonialCard = ({ testimonial, index }) => {
-  return (
-    <motion.div
-      className="w-full lg:sticky"
-      style={{ top: `calc(40vh - 100px + ${index * 24}px)` }} // Staggered and centered vertically
-    >
-      <div className={cn(
-        "p-6 rounded-2xl shadow-lg flex flex-col h-auto w-full",
-        "bg-card border border-border"
-      )}>
-        {/* Top section: Image and Author */}
-        <div className="flex items-center gap-4">
-          <div
-            className="w-14 h-14 rounded-xl bg-cover bg-center flex-shrink-0"
-            style={{ backgroundImage: `url(${testimonial.avatarSrc})` }}
-            aria-label={`Photo of ${testimonial.name}`}
-          />
-          <div className="flex-grow">
-            <p className="font-semibold text-lg text-foreground">{testimonial.name}</p>
-            <p className="text-sm text-muted-foreground">{testimonial.title}</p>
-          </div>
-        </div>
-
-        {/* Middle section: Rating */}
-        <div className="flex items-center gap-2 my-4">
-          <span className="font-bold text-base text-foreground">{testimonial.rating.toFixed(1)}</span>
-          <div className="flex">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star
-                key={i}
-                className={cn(
-                  "h-4 w-4",
-                  i < Math.floor(testimonial.rating)
-                    ? "text-yellow-400 fill-yellow-400"
-                    : "text-muted-foreground/30"
-                )}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Bottom section: Quote */}
-        {testimonial.quote && (
-          <p className="text-base text-muted-foreground">&ldquo;{testimonial.quote}&rdquo;</p>
-        )}
+const TestimonialCard = ({ testimonial }) => (
+  <div className="bg-[#f2f2f2] rounded-3xl p-8 flex flex-col h-full">
+    <div className="flex gap-1 mb-6">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star
+          key={i}
+          className={cn(
+            "h-5 w-5",
+            i < Math.floor(testimonial.rating)
+              ? "fill-[#111] text-[#111]"
+              : "fill-transparent text-[#111]"
+          )}
+        />
+      ))}
+    </div>
+    
+    <p className="text-[#333] text-base leading-relaxed mb-8 flex-grow">
+      {testimonial.quote}
+    </p>
+    
+    <div className="flex items-center gap-3 mt-auto">
+      <img 
+        src={testimonial.avatarSrc} 
+        alt={testimonial.name}
+        className="w-10 h-10 rounded-full object-cover"
+      />
+      <div>
+        <h4 className="font-semibold text-sm text-[#111]">{testimonial.name}</h4>
+        <p className="text-sm text-[#666]">{testimonial.title}</p>
       </div>
-    </motion.div>
-  );
-};
+    </div>
+  </div>
+);
 
-// --- Main Exported Component ---
+export default function ClientsSectionDemo() {
+  const featuredTestimonial = {
+    name: "Samantha Lee",
+    quote: "My property search improved drastically. Highly professional and effective. The agents understood exactly what I was looking for.",
+    avatarSrc: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=60",
+    bgImage: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&auto=format&fit=crop&q=80"
+  };
 
-export const ClientsSection = ({
-  tagLabel,
-  title,
-  description,
-  stats,
-  testimonials,
-  primaryActionLabel,
-  secondaryActionLabel,
-  className,
-}) => {
-  // Calculate a height for the scroll container to ensure all cards can stack
-  const scrollContainerHeight = `calc(100vh + ${testimonials.length * 100}px)`;
+  const testimonials = [
+    {
+      name: "Ali Raza",
+      title: "Entrepreneur",
+      quote: "The structured approach helped me manage my property investments effectively while improving my overall returns.",
+      rating: 5,
+      avatarSrc: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=200&auto=format&fit=crop&q=60"
+    },
+    {
+      name: "Hina Malik",
+      title: "Teacher",
+      quote: "The holistic approach made a real difference in my home buying journey. I feel calmer, more in control, and happy with the result.",
+      rating: 5,
+      avatarSrc: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=60"
+    },
+    {
+      name: "John Snow",
+      title: "IT Expert",
+      quote: "I struggled with finding the right commercial space for years, but within a few weeks, my business location improved noticeably.",
+      rating: 5,
+      avatarSrc: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=60"
+    },
+    {
+      name: "Kathie Corl",
+      title: "Neurology",
+      quote: "Within weeks, I noticed a significant improvement in my investment portfolio. The personalized approach made all the difference.",
+      rating: 5,
+      avatarSrc: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=60"
+    }
+  ];
 
   return (
-    <section className={cn("w-full bg-background text-foreground py-[72px]", className)}>
-      <div className="mx-auto max-w-[1280px] px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
+    <section className="w-full bg-white py-20 font-sans">
+      <div className="max-w-[1760px] mx-auto px-6 md:px-8">
         
-        {/* Left Column: Sticky Content */}
-        <div className="flex flex-col gap-6 lg:sticky" style={{ top: 'max(30vh, 120px)' }}>
-          <div className="inline-flex items-center gap-2 self-start rounded-full border border-border bg-muted/50 px-3 py-1 text-sm">
-            <div className="h-2 w-2 rounded-full bg-green-500" />
-            <span className="text-muted-foreground">{tagLabel}</span>
+        {/* Header */}
+        <div className="text-center mb-16">
+          <div className="flex items-center justify-center gap-2 mb-3 md:mb-4">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#111]" />
+            <span className="text-xs md:text-sm font-medium tracking-wide text-[#333] uppercase">Testimonials</span>
           </div>
-
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight">{title}</h2>
-          <p className="text-lg text-muted-foreground">{description}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-            {stats.map((stat) => (
-              <StatCard key={stat.label} {...stat} />
-            ))}
-          </div>
-          <div className="flex flex-col sm:flex-row items-center gap-4 mt-6">
-            <Button variant="outline" size="lg" className="rounded-full w-full sm:w-auto">{secondaryActionLabel}</Button>
-            <Button size="lg" className="rounded-full w-full sm:w-auto">{primaryActionLabel}</Button>
-          </div>
+          <h2 className="text-3xl md:text-5xl font-serif text-[#111]">
+            What Our Clients Say
+          </h2>
         </div>
 
-        {/* Right Column: Container for the sticky card stack */}
-        <div 
-          className="relative flex flex-col gap-6 lg:h-[var(--scroll-height)]" 
-          style={{ '--scroll-height': scrollContainerHeight }}
-        >
-          {testimonials.map((testimonial, index) => (
-            <StickyTestimonialCard
-              key={testimonial.name}
-              index={index}
-              testimonial={testimonial}
-            />
-          ))}
+        {/* Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+          
+          {/* Left: Featured Testimonial */}
+          <div className="lg:col-span-1">
+            <FeaturedTestimonial testimonial={featuredTestimonial} />
+          </div>
+
+          {/* Right: 2x2 Grid */}
+          <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
+            {testimonials.map((t, idx) => (
+              <TestimonialCard key={idx} testimonial={t} />
+            ))}
+          </div>
+
         </div>
       </div>
     </section>
-  );
-};
-
-// --- DEMO COMPONENT ---
-
-// Define the data for the section
-const statsData = [
-  { value: "100+", label: "Happy clients" },
-  { value: "$250M", label: "revenue added" },
-  { value: "4.8", label: "Average Rating" },
-];
-
-const testimonialsData = [
-  {
-    name: "Will Smith",
-    title: "Harper Education",
-    quote: "Collaborating on this project was seamless. The vision was clearly understood, and the designs genuinely reflect my brand identity.",
-    avatarSrc: "https://images.unsplash.com/photo-1752496906365-d5c662900cc1?w=1800&auto=format&fit=crop&q=100",
-    avatarFallback: "WS",
-    rating: 5.0,
-  },
-  {
-    name: "Ikta Sollork",
-    title: "PARAL CEO",
-    quote: "Working with this process was effortless. The vision was understood perfectly, and the designs truly represent my brand.",
-    avatarSrc: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=900&auto=format&fit=crop&q=60",
-    avatarFallback: "IS",
-    rating: 4.7,
-  },
-  {
-    name: "Alex Johnson",
-    title: "Innovate Tech",
-    quote: "A truly transformative partnership. The end result exceeded all of our expectations and has set a new standard in our industry.",
-    avatarSrc: "https://images.unsplash.com/photo-1584308972272-9e4e7685e80f?w=900&auto=format&fit=crop&q=60",
-    avatarFallback: "AJ",
-    rating: 4.9,
-  },
-];
-
-// The demo component that renders the entire section
-export default function ClientsSectionDemo() {
-  return (
-    <ClientsSection
-      tagLabel="Happy Clients"
-      title="Clients Love Me"
-      description="Trusted by 100+ happy clients, adding $250M+ in revenue."
-      stats={statsData}
-      testimonials={testimonialsData}
-      primaryActionLabel="Contact Now"
-      secondaryActionLabel="See All Projects"
-    />
   );
 }

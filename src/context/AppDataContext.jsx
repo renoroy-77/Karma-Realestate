@@ -21,6 +21,13 @@ const IMG = {
     'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c',
     'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3',
     'https://images.unsplash.com/photo-1600585154340-be6161a56a0c'
+  ],
+  commercial:[
+    'https://images.unsplash.com/photo-1497366216548-37526070297c',
+    'https://images.unsplash.com/photo-1497215728101-856f4ea42174',
+    'https://images.unsplash.com/photo-1504384308090-c894fdcc538d',
+    'https://images.unsplash.com/photo-1531973576160-7125cd663d86',
+    'https://images.unsplash.com/photo-1416949929422-a1d9c20d4db1'
   ]
 };
 
@@ -33,7 +40,7 @@ const INITIAL_PROPS = [
  {id:1,title:'2BHK Flat near Thottada Beach',type:'Flat',purpose:'Sale',price:48,unit:'',loc:'Thottada',imgs:IMG.flat1,beds:2,baths:2,area:'1,080 sq.ft',land:null,listed:'2026-07-12',status:'Available',pub:true,views:64,leads:5,nego:true,lat:11.8347,lng:75.4093,featured:true,rera:'K-RERA/PRJ/KNR/047/2025',cls:'',pros:['400 m walk to Thottada beach'],cons:['Lift serves only up to 3rd floor'],desc:'A neatly kept 2BHK on the second floor...', tour: null},
  {id:2,title:'12 Cents Residential Plot, Thottada',type:'Land',purpose:'Sale',price:66,unit:'',loc:'Thottada',imgs:IMG.land1,beds:null,baths:null,area:null,land:'12 cents',listed:'2026-07-15',status:'Available',pub:true,views:41,leads:4,nego:true,lat:11.8380,lng:75.4050,featured:true,rera:null,cls:'Purayidam',pros:['Clear single-owner title'],cons:['Boundary wall not yet built'],desc:'A ready-to-build 12 cent plot...', tour: null},
  {id:3,title:'4BHK Luxury Villa with Garden',type:'House',purpose:'Sale',price:120,unit:'',loc:'Kannur City',imgs:IMG.villa,beds:4,baths:4,area:'2,400 sq.ft',land:'8 cents',listed:'2026-07-18',status:'Available',pub:true,views:128,leads:12,nego:false,lat:11.8745,lng:75.3704,featured:true,rera:'K-RERA/PRJ/KNR/012/2024',cls:'',pros:['Premium finishing', 'Quiet neighborhood'],cons:['Requires own borewell maintenance'],desc:'A beautiful newly built villa in the heart of the city...', tour: 'https://www.youtube.com/embed/M7lc1UVf-VE'},
- {id:4,title:'Commercial Office Space',type:'Commercial',purpose:'Rent',price:1.2,unit:'L/mo',loc:'Kannur City',imgs:IMG.flat1,beds:null,baths:null,area:'1,500 sq.ft',land:null,listed:'2026-07-20',status:'Available',pub:true,views:95,leads:8,nego:true,lat:11.8780,lng:75.3650,featured:true,rera:null,cls:'',pros:['Main road frontage', 'Ample parking'],cons:['First floor only'],desc:'Spacious commercial setup perfect for IT or consulting...', tour: null},
+ {id:4,title:'Commercial Office Space',type:'Commercial',purpose:'Rent',price:1.2,unit:'L/mo',loc:'Kannur City',imgs:IMG.commercial,beds:null,baths:null,area:'1,500 sq.ft',land:null,listed:'2026-07-20',status:'Available',pub:true,views:95,leads:8,nego:true,lat:11.8780,lng:75.3650,featured:true,rera:null,cls:'',pros:['Main road frontage', 'Ample parking'],cons:['First floor only'],desc:'Spacious commercial setup perfect for IT or consulting...', tour: null},
 ];
 
 const INITIAL_LEADS = [

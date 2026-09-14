@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation } from 'react-router-dom'
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useEffect, useContext, useRef } from 'react'
 import { LOCALITIES, AppDataContext } from '../../context/AppDataContext'
 
@@ -58,12 +58,30 @@ function CookieBanner() {
 }
 
 function Header() {
-  const { user, setUser, showAuthModal, setShowAuthModal } = useContext(AppDataContext);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showSellModal, setShowSellModal] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const { user, setUser, showAuthModal, setShowAuthModal } = useContext(AppDataContext);
   const location = useLocation();
+  const navigate = useNavigate();
   const isHome = location.pathname === '/';
+
+  // Search Bar State
+  const [searchPurpose, setSearchPurpose] = useState('Sale');
+  const [searchLoc, setSearchLoc] = useState('');
+  const [searchType, setSearchType] = useState('All');
+  const [searchPrice, setSearchPrice] = useState('All');
+
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+    if (searchPurpose && searchPurpose !== 'All') params.set('purpose', searchPurpose);
+    if (searchLoc) params.set('loc', searchLoc);
+    if (searchType && searchType !== 'All') params.set('type', searchType);
+    if (searchPrice && searchPrice !== 'All') params.set('price', searchPrice);
+
+    navigate(`/results?${params.toString()}`);
+    setIsExpanded(false);
+  };
 
   // OTP Modal State
   const [step, setStep] = useState(0); // 0: details, 1: otp, 2: success
@@ -83,29 +101,115 @@ function Header() {
     }
   }, [cooldown, attempts]);
 
+  // Listen for footer sell button click
   useEffect(() => {
-    setScrolled(true); // Always solid header since new hero has a light background
+    const handleOpenSell = () => setShowSellModal(true);
+    window.addEventListener('open-sell-modal', handleOpenSell);
+    return () => window.removeEventListener('open-sell-modal', handleOpenSell);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setIsExpanded(false);
+      }
+    };
+
+    setIsExpanded(false);
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [isHome]);
 
   return (
     <>
-      <header className={`hdr ${scrolled ? 'hdr-solid' : 'hdr-transparent'}`}>
+      <div className={`hdr-overlay ${isExpanded ? 'active' : ''}`} onClick={() => setIsExpanded(false)}></div>
+      <header className={`hdr hdr-solid ${isExpanded ? 'hdr-expanded' : ''}`} style={{ position: 'fixed' }}>
         <div className="hdr-in">
-          <Link to="/" className="logo" style={{ textDecoration: 'none' }}>
-            <div className="logo-mark">K</div>
-            <div className="logo-txt"><b>KARMA</b><span>REAL ESTATE</span></div>
+          <Link to="/" className="logo" style={{ textDecoration: 'none', zIndex: 2 }}>
+            <div className="logo-mark" style={{ background: 'var(--blue)' }}>K</div>
+            <div className="logo-txt"><b style={{ color: 'var(--blue)' }}>KARMA</b><span>REAL ESTATE</span></div>
           </Link>
-          <nav className="hdr-nav">
+
+          <div className="hdr-search-container">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', flexDirection: 'row', pointerEvents: 'none' }}>
+              {/* Small Pill */}
+              <div className="search-pill-small" onClick={() => setIsExpanded(true)} style={{ flex: 1, pointerEvents: 'auto' }}>
+                <div className="sp-btn">Anywhere</div>
+                <span className="sp-div"></span>
+                <div className="sp-btn">Any Type</div>
+                <span className="sp-div"></span>
+                <div className="sp-btn">Any Budget</div>
+                <div className="sp-icon" style={{ background: 'var(--blue)' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                </div>
+              </div>
+
+              {location.pathname.includes('/results') && (
+                <button className="mf-toggle-btn-header" onClick={() => window.dispatchEvent(new Event('toggle-filters'))} style={{ pointerEvents: 'auto' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                </button>
+              )}
+            </div>
+
+            {/* Large Search Bar */}
+            <div className="search-bar-large-wrapper">
+              <div className="search-tabs">
+                <button className={searchPurpose === 'Sale' ? 'st-active' : ''} onClick={() => setSearchPurpose('Sale')}>Buy</button>
+                <button className={searchPurpose === 'Rent' ? 'st-active' : ''} onClick={() => setSearchPurpose('Rent')}>Rent</button>
+                <button className={searchPurpose === 'Lease' ? 'st-active' : ''} onClick={() => setSearchPurpose('Lease')}>Lease</button>
+                <button className={searchPurpose === 'Commercial' ? 'st-active' : ''} onClick={() => setSearchPurpose('Commercial')}>Commercial</button>
+              </div>
+              <div className="search-bar-large">
+                <div className="sb-field">
+                  <label>Location</label>
+                  <select value={searchLoc} onChange={e => setSearchLoc(e.target.value)} style={{ border: 'none', background: 'transparent', outline: 'none', padding: 0, margin: 0, width: '100%', fontSize: '15px', color: 'var(--ink)' }}>
+                    <option value="">Any location</option>
+                    <option value="Kannur City">Kannur City</option>
+                    <option value="Thottada">Thottada</option>
+                    <option value="Payyambalam">Payyambalam</option>
+                    <option value="Talap">Talap</option>
+                  </select>
+                </div>
+                <div className="sb-divider"></div>
+                <div className="sb-field">
+                  <label>Property Type</label>
+                  <select value={searchType} onChange={e => setSearchType(e.target.value)} style={{ border: 'none', background: 'transparent', outline: 'none', padding: 0, margin: 0, width: '100%', fontSize: '15px', color: 'var(--ink)' }}>
+                    <option value="All">Any type</option>
+                    <option value="House">House</option>
+                    <option value="Flat">Flat</option>
+                    <option value="Land">Land</option>
+                    <option value="Commercial">Commercial</option>
+                  </select>
+                </div>
+                <div className="sb-divider"></div>
+                <div className="sb-field">
+                  <label>Budget</label>
+                  <select value={searchPrice} onChange={e => setSearchPrice(e.target.value)} style={{ border: 'none', background: 'transparent', outline: 'none', padding: 0, margin: 0, width: '100%', fontSize: '15px', color: 'var(--ink)' }}>
+                    <option value="All">Any budget</option>
+                    <option value="Under 50L">Under ₹50L</option>
+                    <option value="50L - 100L">₹50L - ₹100L</option>
+                    <option value="Over 100L">Over ₹100L</option>
+                  </select>
+                </div>
+                <button className="sb-search-btn" onClick={handleSearch} style={{ background: 'var(--blue)' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                  <span>Search</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <nav className="hdr-nav" style={{ zIndex: 2 }}>
             <Link to="/" className="nav-link">Home</Link>
-            <Link to="/results" className="nav-link">Properties</Link>
+            <Link to="/properties" className="nav-link">Properties</Link>
             <Link to="/about" className="nav-link">About Us</Link>
             <Link to="/wishlist" className="nav-link">Wishlist</Link>
-            <button className="nav-link" onClick={() => setShowSellModal(true)} style={{ color: 'var(--blue)', background: 'var(--accent-soft)' }}>Sell Property</button>
+            <button className="nav-link" onClick={() => setShowSellModal(true)} style={{ color: 'var(--blue)', background: 'var(--accent-soft)', padding: '10px 18px', fontWeight: 700 }}>Sell Property</button>
             {user ? (
               <div className="user-dropdown-wrap" style={{ position: 'relative' }}>
-                <button className="hdr-user">
-                  <span>{user.name.split(' ')[0]}</span>
-                  <span className="avatar" style={{background: 'var(--accent)', color: '#fff'}}>
+                <button className="hdr-user" style={{padding: '5px', border: '1px solid #ddd', borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                  <span className="avatar" style={{background: '#717171', color: '#fff', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                     {user.name.charAt(0).toUpperCase()}
                   </span>
                 </button>
@@ -114,10 +218,9 @@ function Header() {
                 </div>
               </div>
             ) : (
-              <button className="hdr-user" onClick={() => setShowAuthModal(true)}>
-                <span>Sign in</span>
-                <span className="avatar">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5Z"/></svg>
+              <button className="hdr-user" onClick={() => setShowAuthModal(true)} style={{padding: '5px', border: '1px solid #ddd', borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                <span className="avatar" style={{width: '32px', height: '32px', background: '#717171', color: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5Z"/></svg>
                 </span>
               </button>
             )}
@@ -139,7 +242,7 @@ function Header() {
         </div>
         <nav className="pub-side-nav">
           <Link to="/" className="pub-side-link" onClick={() => setShowMobileMenu(false)}>Home</Link>
-          <Link to="/results" className="pub-side-link" onClick={() => setShowMobileMenu(false)}>Properties</Link>
+          <Link to="/properties" className="pub-side-link" onClick={() => setShowMobileMenu(false)}>Properties</Link>
           <Link to="/about" className="pub-side-link" onClick={() => setShowMobileMenu(false)}>About Us</Link>
           <Link to="/wishlist" className="pub-side-link" onClick={() => setShowMobileMenu(false)}>Wishlist</Link>
           <button className="pub-side-link" onClick={() => { setShowMobileMenu(false); setShowSellModal(true); }} style={{ color: 'var(--blue)', background: 'var(--accent-soft)' }}>Sell Property</button>
@@ -317,21 +420,33 @@ export function Footer() {
     <footer className="footer">
       <div className="footer-in">
         <div className="f-brand">
-          <div className="logo"><div className="logo-mark">K</div><div className="logo-txt"><b style={{color:'#fff'}}>KARMA</b><span style={{color:'#8FA3C2'}}>REAL ESTATE</span></div></div>
+          <div className="logo"><div className="logo-mark">K</div><div className="logo-txt"><b>KARMA</b><span>REAL ESTATE</span></div></div>
           <p>A Kannur-first property marketplace. Land, houses, flats, warehouses and commercial spaces — for sale, rent and lease.</p>
         </div>
-        <div><h4>Explore</h4><Link to="/results">All properties</Link><Link to="/results?purpose=Sale">Buy</Link><Link to="/results?purpose=Rent">Rent</Link><Link to="/wishlist">Wishlist</Link></div>
+        <div>
+          <h4>Quick Links</h4>
+          <Link to="/">Home</Link>
+          <Link to="/properties">Properties</Link>
+          <Link to="/about">About Us</Link>
+          <Link to="/wishlist">Wishlist</Link>
+          <button onClick={() => window.dispatchEvent(new Event('open-sell-modal'))} style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>Sell Property</button>
+        </div>
         <div><h4>Company</h4><Link to="/about">About KARMA</Link><Link to="/privacy-policy">Privacy Policy</Link><Link to="/about">Contact</Link></div>
         <div><h4>Contact Us</h4>
-          <a style={{ fontWeight: '600' }}>Primary Contact:<br/>Zeeshan Ali / Vijina Velikath</a>
-          <a href="tel:+919995797450" style={{ fontSize: '18px', fontWeight: '800', color: 'var(--blue)' }}>+91 99957 97450</a>
+          <a style={{ fontWeight: '600', color: 'var(--ink)' }}>Zeeshan Ali / Vijina Velikath</a>
+          <a href="tel:+919995797450" style={{ fontWeight: '600', color: 'var(--ink)' }}>+91 99957 97450</a>
           <a href="mailto:hello@karmarealestate.in">hello@karmarealestate.in</a>
         </div>
       </div>
-      <div className="f-bottom"><div className="f-bottom-in">
-        <span>© 2026 KARMA Real Estate Pvt. Ltd. All rights reserved.</span>
-        <span><a style={{display:'inline',padding:'0 8px'}}>Privacy Policy</a>·<a style={{display:'inline',padding:'0 8px'}}>Terms</a>·<span style={{padding:'0 8px'}}>K-RERA details shown per listing where registered</span></span>
-      </div></div>
+      <div className="f-bottom">
+        <div className="f-bottom-in">
+          <span>© 2026 KARMA Real Estate Pvt. Ltd.</span>
+          <span><a style={{display:'inline',padding:'0 8px'}}>Privacy</a> · <a style={{display:'inline',padding:'0 8px'}}>Terms</a> · <a style={{display:'inline',padding:'0 8px'}}>Sitemap</a></span>
+        </div>
+        <div style={{ textAlign: 'center', paddingBottom: '24px', fontSize: '13px', color: 'var(--ink-2)' }}>
+          Made with ❤️ Creatox Designs
+        </div>
+      </div>
     </footer>
   )
 }
