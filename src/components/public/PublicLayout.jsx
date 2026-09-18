@@ -19,7 +19,7 @@ function CookieBanner() {
           </div>
           <div className="cb-actions">
             <button className="btn btn-outline" onClick={() => setShowPrefs(true)}>Manage</button>
-            <button className="btn btn-blue" onClick={() => setShow(false)}>Accept All</button>
+            <button className="btn-primary" onClick={() => setShow(false)}>Accept All</button>
           </div>
         </div>
       </div>
@@ -46,7 +46,7 @@ function CookieBanner() {
                 </div>
                 <div className={`toggle ${analytics ? 'on' : ''}`} onClick={() => setAnalytics(!analytics)}></div>
               </div>
-              <button className="btn btn-blue" style={{width: '100%', marginTop: 24}} onClick={() => { setShowPrefs(false); setShow(false); }}>
+              <button className="btn-primary" style={{width: '100%', marginTop: 24}} onClick={() => { setShowPrefs(false); setShow(false); }}>
                 Save Preferences
               </button>
             </div>
@@ -205,7 +205,7 @@ function Header() {
             <Link to="/properties" className="nav-link">Properties</Link>
             <Link to="/about" className="nav-link">About Us</Link>
             <Link to="/wishlist" className="nav-link">Wishlist</Link>
-            <button className="nav-link" onClick={() => setShowSellModal(true)} style={{ color: 'var(--blue)', background: 'var(--accent-soft)', padding: '10px 18px', fontWeight: 700 }}>Sell Property</button>
+            <button className="nav-link" onClick={() => setShowSellModal(true)}>Sell Property</button>
             {user ? (
               <div className="user-dropdown-wrap" style={{ position: 'relative' }}>
                 <button className="hdr-user" style={{padding: '5px', border: '1px solid #ddd', borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
@@ -245,7 +245,7 @@ function Header() {
           <Link to="/properties" className="pub-side-link" onClick={() => setShowMobileMenu(false)}>Properties</Link>
           <Link to="/about" className="pub-side-link" onClick={() => setShowMobileMenu(false)}>About Us</Link>
           <Link to="/wishlist" className="pub-side-link" onClick={() => setShowMobileMenu(false)}>Wishlist</Link>
-          <button className="pub-side-link" onClick={() => { setShowMobileMenu(false); setShowSellModal(true); }} style={{ color: 'var(--blue)', background: 'var(--accent-soft)' }}>Sell Property</button>
+          <button className="pub-side-link" onClick={() => { setShowMobileMenu(false); setShowSellModal(true); }}>Sell Property</button>
           {user ? (
             <div style={{ borderTop: '1px solid var(--line)', marginTop: 'auto', paddingTop: 24 }}>
               <div style={{ padding: '0 24px', fontSize: 13, color: 'var(--ink-2)', marginBottom: 8 }}>Signed in as</div>
@@ -334,7 +334,7 @@ function Header() {
                       <svg className="sel-arr" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
                     </div>
                   </div>
-                  <button className="btn btn-blue" style={{ width: '100%' }} disabled={!formData.name || formData.phone.length < 10} onClick={() => setStep(1)}>
+                  <button className="btn-primary" style={{ width: '100%' }} disabled={!formData.name || formData.phone.length < 10} onClick={() => setStep(1)}>
                     Send OTP
                   </button>
                   <p className="m-note">
@@ -372,7 +372,7 @@ function Header() {
                       Too many failed attempts. Try again in {cooldown}s.
                     </div>
                   ) : (
-                    <button className="btn btn-blue" style={{ width: '100%' }} disabled={otp.join('').length < 4} onClick={() => {
+                    <button className="btn-primary" style={{ width: '100%' }} disabled={otp.join('').length < 4} onClick={() => {
                       if (otp.join('') === '1234') {
                         setStep(2);
                       } else {
@@ -398,7 +398,7 @@ function Header() {
                   </div>
                   <h3 style={{fontSize: 22, color: 'var(--ink)', marginBottom: 8}}>You're all set!</h3>
                   <p style={{color: 'var(--ink-2)', fontSize: 15, marginBottom: 32}}>Your number is verified. You now have full access to view property details and contact owners.</p>
-                  <button className="btn btn-blue" style={{ width: '100%' }} onClick={() => {
+                  <button className="btn-primary" style={{ width: '100%' }} onClick={() => {
                     setUser({ name: formData.name, phone: formData.phone, loc: formData.loc });
                     setShowAuthModal(false);
                     setTimeout(()=>setStep(0),300);

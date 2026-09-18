@@ -79,7 +79,27 @@ export default function Home() {
         <div className="hero-left">
           <div className="hero-left-content">
             <h1 className="hero-h1">Find Your Perfect Property in Kerala</h1>
-            <p className="hero-desc" style={{ marginBottom: '40px' }}>Discover 1000+ verified properties across Kerala.<br/>Search by location, budget & lifestyle.</p>
+            <p className="hero-desc" style={{ marginBottom: '32px' }}>Discover 1000+ verified properties across Kerala.<br/>Search by location, budget & lifestyle.</p>
+
+            {/* Quick Action Pills */}
+            <div className="flex flex-wrap gap-3 md:gap-4 mb-10">
+              <Link to="/results?purpose=Sale" className="bg-white px-4 md:px-5 py-2.5 rounded-full text-[13px] md:text-[14px] font-medium text-gray-800 no-underline shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 transition-all flex items-center gap-2" style={{ textDecoration: 'none' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Buy
+              </Link>
+              <Link to="/results?purpose=Rent" className="bg-white px-4 md:px-5 py-2.5 rounded-full text-[13px] md:text-[14px] font-medium text-gray-800 no-underline shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 transition-all flex items-center gap-2" style={{ textDecoration: 'none' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                Rent
+              </Link>
+              <Link to="/results?purpose=Lease" className="bg-white px-4 md:px-5 py-2.5 rounded-full text-[13px] md:text-[14px] font-medium text-gray-800 no-underline shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 transition-all flex items-center gap-2" style={{ textDecoration: 'none' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>
+                Lease
+              </Link>
+              <button onClick={() => window.dispatchEvent(new Event('open-sell-modal'))} className="bg-white px-4 md:px-5 py-2.5 rounded-full text-[13px] md:text-[14px] font-medium text-gray-800 shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 transition-all flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                Sell
+              </button>
+            </div>
 
             <div className="hero-locs">
               <h3 className="hl-title">Popular Locations</h3>
@@ -135,6 +155,7 @@ export default function Home() {
                 defaultCenter={{ lat: 11.874477, lng: 75.370182 }}
                 mapId="DEMO_MAP_ID"
                 disableDefaultUI={true}
+                gestureHandling={'greedy'}
                 style={{ width: '100%', height: '100%' }}
               >
                 {props.filter(p => p.lat && p.lng).slice(0, 15).map(p => (

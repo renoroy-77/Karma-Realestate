@@ -45,15 +45,17 @@ export default function Wishlist() {
       </div>
 
       {savedProps.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '80px 20px', background: 'var(--bg-soft)', borderRadius: 24, marginTop: 40 }}>
-          <div className="m-ic" style={{ background: 'rgba(26,77,143,0.1)', color: 'var(--blue)', margin: '0 auto 24px', width: 80, height: 80 }}>
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <div className="flex flex-col items-center justify-center py-24 px-4 text-center rounded-[32px] mt-10 border border-gray-100 bg-gradient-to-b from-gray-50 to-white shadow-sm">
+          <div className="w-24 h-24 rounded-full bg-[#f3f4f6] text-[#111] flex items-center justify-center mb-6">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
           </div>
-          <h2 style={{ fontSize: 24, marginBottom: 12 }}>Nothing saved yet</h2>
-          <p style={{ color: 'var(--ink-2)', fontSize: 16, marginBottom: 32, maxWidth: 400, margin: '0 auto 32px' }}>
-            Properties you save will appear here so you can easily find them later.
+          <h2 className="text-2xl font-bold text-gray-900 mb-3 tracking-tight">Your wishlist is empty</h2>
+          <p className="text-gray-500 text-base max-w-md mb-8 leading-relaxed">
+            As you browse properties, tap the heart icon to save your favorites. They'll be waiting for you here.
           </p>
-          <Link to="/results" className="btn btn-blue" style={{ fontSize: 15 }}>Browse Properties</Link>
+          <Link to="/results" className="bg-[#111] text-white px-8 py-3.5 rounded-full font-semibold hover:bg-black hover:-translate-y-0.5 transition-all shadow-md">
+            Start Exploring
+          </Link>
         </div>
       ) : (
         <div className="similar-grid" style={{ marginTop: 40 }}>

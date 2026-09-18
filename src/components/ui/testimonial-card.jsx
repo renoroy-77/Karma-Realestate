@@ -121,7 +121,7 @@ export default function ClientsSectionDemo() {
             <span className="h-1.5 w-1.5 rounded-full bg-[#111]" />
             <span className="text-xs md:text-sm font-medium tracking-wide text-[#333] uppercase">Testimonials</span>
           </div>
-          <h2 className="text-3xl md:text-5xl font-serif text-[#111]">
+          <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-[#111]">
             What Our Clients Say
           </h2>
         </div>

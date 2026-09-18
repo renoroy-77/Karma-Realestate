@@ -2,8 +2,25 @@ import { useContext, useState, useRef, useEffect } from 'react';
 import { AppDataContext } from '../../context/AppDataContext';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
+import { APIProvider, Map, AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
 import { Footer } from '../../components/public/PublicLayout';
+
+function BoundsUpdater({ setMapBounds }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map) return;
+    const listener = map.addListener('idle', () => {
+      setMapBounds(map.getBounds());
+    });
+    // Fallback if google is not defined globally (though it should be after map loads)
+    return () => {
+      if (window.google && google.maps && google.maps.event) {
+        google.maps.event.removeListener(listener);
+      }
+    };
+  }, [map, setMapBounds]);
+  return null;
+}
 
 function PropertyCard({ p }) {
   // Generate a mock rating between 4.5 and 5.0 for the UI
@@ -66,6 +83,7 @@ export default function Results() {
   const [activeMarker, setActiveMarker] = useState(null);
   const [sortBy, setSortBy] = useState('Newest');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [mapBounds, setMapBounds] = useState(null);
 
   useEffect(() => {
     const handleToggle = () => setShowMobileFilters(prev => !prev);
@@ -92,6 +110,20 @@ export default function Results() {
     if (sortBy === 'Price: Low to High') return a.price - b.price;
     if (sortBy === 'Price: High to Low') return b.price - a.price;
     return 0; // Newest / Default
+  });
+
+  const visibleProps = sortedProps.filter(p => {
+    if (!mapBounds || !p.lat || !p.lng) return true;
+    if (mapBounds.getNorthEast && mapBounds.getSouthWest) {
+      const ne = mapBounds.getNorthEast();
+      const sw = mapBounds.getSouthWest();
+      const latInRange = p.lat >= sw.lat() && p.lat <= ne.lat();
+      const lngInRange = sw.lng() <= ne.lng() 
+        ? p.lng >= sw.lng() && p.lng <= ne.lng()
+        : p.lng >= sw.lng() || p.lng <= ne.lng();
+      return latInRange && lngInRange;
+    }
+    return true;
   });
 
   // Mobile Bottom Sheet Logic
@@ -132,7 +164,8 @@ export default function Results() {
   // Convert state to viewport height percentage (peek: 160px visible, half: 50vh, full: 0px)
   const getTransform = () => {
     if (window.innerWidth > 1024) return 'none'; // Desktop
-    const baseOffset = sheetState === 0 ? 'calc(100vh - 160px)' : sheetState === 1 ? '50vh' : '0px';
+    if (activeMarker) return 'translateY(110vh)'; // Hide when marker active
+    const baseOffset = sheetState === 0 ? 'calc(100vh - 80px)' : sheetState === 1 ? '50vh' : '0px';
     return `translateY(calc(${baseOffset} + ${dragging ? dragY : 0}px))`;
   };
 
@@ -210,7 +243,7 @@ export default function Results() {
           
           <div className="nq-header">
             <div className="nq-header-top">
-              <h2>{sortedProps.length} Places in Kannur</h2>
+              <h2>{visibleProps.length} homes</h2>
               <div className="nq-sort" style={{ display: 'flex', alignItems: 'center' }}>
                 Sort by: 
                 <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ border: 'none', background: 'transparent', fontWeight: 'bold', cursor: 'pointer', outline: 'none', marginLeft: '4px', fontSize: '13.5px' }}>
@@ -231,7 +264,7 @@ export default function Results() {
 
           <div className="res-content nq-content">
             <div className="res-grid nq-grid">
-              {sortedProps.map(p => (
+              {visibleProps.map(p => (
                 <PropertyCard key={p.id} p={p} />
               ))}
             </div>
@@ -239,6 +272,14 @@ export default function Results() {
           <div className="res-mobile-footer">
             <Footer />
           </div>
+          
+          <button 
+            className={`nq-floating-map-btn ${sheetState > 0 ? 'visible' : ''}`}
+            onClick={(e) => { e.preventDefault(); setSheetState(0); }}
+          >
+            Map 
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon><line x1="9" y1="3" x2="9" y2="18"></line><line x1="15" y1="6" x2="15" y2="21"></line></svg>
+          </button>
         </div>
 
         <div className="res-map nq-map-container">
@@ -249,21 +290,7 @@ export default function Results() {
              </div>
           </div>
           
-          <div className="nq-map-legend">
-            <b>Property Price</b>
-            <div className="nq-ml-dots">
-              <span className="dot d1"></span>
-              <span className="dot d2"></span>
-              <span className="dot d3"></span>
-              <span className="dot d4"></span>
-              <span className="dot d5"></span>
-              <span className="dot d6"></span>
-            </div>
-            <div className="nq-ml-labels">
-              <span>₹20 L</span>
-              <span>₹2 Cr+</span>
-            </div>
-          </div>
+
 
           <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "AIzaSyC36wkei0AmiJoLtIwpeVEeeOo4I-st6qQ"}>
             <Map
@@ -272,6 +299,7 @@ export default function Results() {
               mapId="DEMO_MAP_ID"
               mapTypeId={mapType}
               disableDefaultUI={true}
+              gestureHandling={'greedy'}
               style={{ width: '100%', height: '100%' }}
             >
               {sortedProps.map(p => (
@@ -279,8 +307,6 @@ export default function Results() {
                   <AdvancedMarker 
                     key={p.id} 
                     position={{ lat: p.lat, lng: p.lng }}
-                    onMouseEnter={() => setActiveMarker(p.id)}
-                    onMouseLeave={() => setActiveMarker(null)}
                     onClick={() => setActiveMarker(p.id === activeMarker ? null : p.id)}
                   >
                     {activeMarker === p.id ? (
@@ -307,16 +333,40 @@ export default function Results() {
                         </div>
                       </div>
                     ) : (
-                      <div className="nq-marker" style={{ position: 'relative', transform: 'translate(0, -10px)' }}>
+                      <div className="nq-marker" style={{ position: 'relative' }}>
                         ₹{p.price} L
-                        <div className="nq-marker-caret"></div>
                       </div>
                     )}
                   </AdvancedMarker>
                 )
               ))}
             </Map>
+            <BoundsUpdater setMapBounds={setMapBounds} />
           </APIProvider>
+          {activeMarker && (() => {
+            const activeProp = props.find(p => p.id === activeMarker);
+            if (!activeProp) return null;
+            return (
+              <div className="nq-bottom-active-card">
+                <Link to={`/kannur/${activeProp.type.toLowerCase()}/${activeProp.id}`} className="nq-bac-inner">
+                  <button className="nq-bac-close" onClick={(e) => { e.preventDefault(); setActiveMarker(null); }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  </button>
+                  <div className="nq-bac-img">
+                    <img src={activeProp.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt="" />
+                  </div>
+                  <div className="nq-bac-info">
+                    <h4>{activeProp.title}</h4>
+                    <p>{activeProp.type} in {activeProp.loc}</p>
+                    <div className="nq-bac-meta">
+                       <b>₹{activeProp.price} L</b>
+                       <span>★ {(4.5 + Math.random() * 0.5).toFixed(1)} (4)</span>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            );
+          })()}
         </div>
       </div>
     </section>
