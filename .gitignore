@@ -20,3 +20,4 @@ backend/storage/logs/*
 !backend/storage/framework/sessions/.gitignore
 !backend/storage/framework/views/.gitignore
 !backend/storage/logs/.gitignore
+.env*
