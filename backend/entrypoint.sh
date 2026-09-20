@@ -25,6 +25,10 @@ fi
 # Start PHP-FPM in background
 php-fpm -D
 
+# Start Laravel Task Scheduler in background (free cron execution)
+echo "Starting Laravel Task Scheduler..."
+php artisan schedule:work &
+
 # Start Nginx in foreground
 echo "Starting Nginx web server..."
 exec nginx -g "daemon off;"

@@ -6,7 +6,7 @@ databases:
     region: singapore
 
 services:
-  # 1. Laravel Web Service API
+  # Laravel Web Service API & Background Task Scheduler
   - type: web
     name: karma-api
     env: docker
@@ -30,28 +30,3 @@ services:
         value: pgsql
       - key: FILESYSTEM_DISK
         value: public
-
-  # 2. Cron Job for Scheduled Maintenance & Cleanup
-  - type: cron
-    name: karma-cron
-    env: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
-    plan: free
-    region: singapore
-    schedule: "*/10 * * * *"
-    startCommand: "php artisan schedule:run"
-    envVars:
-      - key: APP_ENV
-        value: production
-      - key: APP_KEY
-        fromService:
-          type: web
-          name: karma-api
-          envVarKey: APP_KEY
-      - key: DATABASE_URL
-        fromDatabase:
-          name: karma-database
-          property: connectionString
-      - key: DB_CONNECTION
-        value: pgsql
