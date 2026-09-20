@@ -67,6 +67,11 @@ function Header() {
   const navigate = useNavigate();
   const isHome = location.pathname === '/';
 
+  // Scroll to top automatically when navigating between pages/properties
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [location.pathname]);
+
   // Search Bar State
   const [searchPurpose, setSearchPurpose] = useState('Sale');
   const [searchLoc, setSearchLoc] = useState('');

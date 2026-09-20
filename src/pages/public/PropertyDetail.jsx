@@ -88,9 +88,11 @@ function CardCarousel({ children }) {
 function PropertyCard({ p }) {
   const { wishlist, toggleWishlist, user, setShowAuthModal } = useContext(AppDataContext);
   const inWishlist = wishlist.includes(p.id);
+  const propertyPath = `/kannur/${(p.type || 'house').toLowerCase()}/${p.slug || p.id}`;
 
   return (
-    <div 
+    <Link 
+      to={propertyPath}
       className="similar-card-hover"
       style={{ 
         flex: '0 0 280px', 
@@ -101,17 +103,18 @@ function PropertyCard({ p }) {
         border: '1px solid var(--line)',
         boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        textDecoration: 'none',
+        color: 'inherit',
+        cursor: 'pointer'
       }}
     >
       <div style={{ position: 'relative', width: '100%', aspectRatio: '16/10', overflow: 'hidden', background: '#f1f5f9' }}>
-        <Link to={`/kannur/${p.type.toLowerCase()}/${p.slug || p.id}`} style={{ display: 'block', width: '100%', height: '100%' }}>
-          <img 
-            src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} 
-            alt={p.title} 
-            style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
-          />
-        </Link>
+        <img 
+          src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} 
+          alt={p.title} 
+          style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
+        />
         <span 
           style={{
             position: 'absolute',
@@ -127,7 +130,7 @@ function PropertyCard({ p }) {
             boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
           }}
         >
-          For {p.purpose?.toLowerCase()}
+          For {p.purpose?.toLowerCase() || 'sale'}
         </span>
         <button
           onClick={(e) => {
@@ -152,7 +155,8 @@ function PropertyCard({ p }) {
             display: 'grid',
             placeItems: 'center',
             cursor: 'pointer',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+            boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+            zIndex: 2
           }}
         >
           <svg viewBox="0 0 32 32" width="16" height="16" xmlns="http://www.w3.org/2000/svg" style={{ fill: inWishlist ? '#ef4444' : 'rgba(0,0,0,0.35)', stroke: inWishlist ? '#ef4444' : '#fff', strokeWidth: 2 }}>
@@ -171,13 +175,11 @@ function PropertyCard({ p }) {
           </span>
         </div>
 
-        <Link 
-          to={`/kannur/${p.type.toLowerCase()}/${p.slug || p.id}`} 
+        <div 
           style={{ 
             fontSize: 15, 
             fontWeight: 700, 
             color: 'var(--ink)', 
-            textDecoration: 'none', 
             whiteSpace: 'nowrap', 
             overflow: 'hidden', 
             textOverflow: 'ellipsis',
@@ -186,7 +188,7 @@ function PropertyCard({ p }) {
           title={p.title}
         >
           {p.title}
-        </Link>
+        </div>
 
         <div style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>
           📍 {p.loc}, Kannur
@@ -203,7 +205,7 @@ function PropertyCard({ p }) {
           {p.nego && <span style={{ fontSize: 11, color: '#059669', fontWeight: 600 }}>Negotiable</span>}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -245,6 +247,8 @@ export default function PropertyDetail() {
   const contextProp = props.find(prop => prop.slug === slug || String(prop.id) === String(slug));
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    setPropData(null);
     let isMounted = true;
     setLoading(!contextProp);
 
@@ -272,7 +276,8 @@ export default function PropertyDetail() {
     return () => { isMounted = false; };
   }, [slug, user]);
 
-  const p = propData || contextProp;
+  const isPropMatch = propData && (propData.slug === slug || String(propData.id) === String(slug));
+  const p = isPropMatch ? propData : contextProp;
 
   if (!p && loading) {
     return (
@@ -292,9 +297,8 @@ export default function PropertyDetail() {
     );
   }
 
-  const similar = similarProps.length > 0 
-    ? similarProps 
-    : props.filter(prop => prop.id !== p.id && prop.type === p.type);
+  const similar = (similarProps.length > 0 ? similarProps : props)
+    .filter(prop => prop && p && String(prop.id) !== String(p.id) && prop.slug !== p.slug);
 
   const inWishlist = wishlist.includes(p.id);
 
