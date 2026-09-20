@@ -1,0 +1,8 @@
+[allowlist]
+description = "Ignore vendor, storage, and build caches"
+paths = [
+    '''(?i)vendor/''',
+    '''(?i)node_modules/''',
+    '''(?i)storage/''',
+    '''(?i)\.phpunit\.result\.cache''',
+]

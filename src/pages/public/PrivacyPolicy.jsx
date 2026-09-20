@@ -42,7 +42,8 @@ export default function PrivacyPolicy() {
           <p>KARMA Real Estate<br/>
           Fort Road, Kannur City<br/>
           Kerala 670001<br/>
-          privacy@karma.com</p>
+          Phone: +91 99957 97450<br/>
+          privacy@karmarealestate.in</p>
         </div>
       </div>
     </div>

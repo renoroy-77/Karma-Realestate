@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Star } from "lucide-react";
 import { cn } from "../../lib/utils";
+import api from "../../lib/api";
 
 const FeaturedTestimonial = ({ testimonial }) => (
   <div className="relative rounded-3xl overflow-hidden h-full min-h-[340px] md:min-h-[400px] lg:min-h-[500px] flex flex-col justify-end p-6 md:p-8 text-white">
@@ -73,41 +74,67 @@ const TestimonialCard = ({ testimonial }) => (
 );
 
 export default function ClientsSectionDemo() {
+  const [testimonials, setTestimonials] = React.useState([]);
+
+  React.useEffect(() => {
+    api.get('/home')
+      .then(res => {
+        if (res.data.success && res.data.data?.testimonials?.length > 0) {
+          const avatarList = [
+            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=60',
+            'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=60',
+            'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=60',
+            'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&auto=format&fit=crop&q=60'
+          ];
+          const mapped = res.data.data.testimonials.map((t, idx) => ({
+            name: t.client_name,
+            title: t.client_role,
+            quote: t.content,
+            rating: t.rating || 5,
+            avatarSrc: t.photo_url || avatarList[idx % avatarList.length]
+          }));
+          setTestimonials(mapped);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const featuredTestimonial = {
-    name: "Samantha Lee",
-    quote: "My property search improved drastically. Highly professional and effective. The agents understood exactly what I was looking for.",
-    avatarSrc: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=60",
+    name: testimonials[0]?.name || "Faisal Mohammed",
+    title: testimonials[0]?.title || "NRI Business Owner, Abu Dhabi",
+    quote: testimonials[0]?.quote || "Finding sea-view luxury land in Kannur while living in the UAE was effortless with KARMA. The OTP-unlocked details and drone video gave me complete confidence to book before flying down.",
+    avatarSrc: testimonials[0]?.avatarSrc || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=60",
     bgImage: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&auto=format&fit=crop&q=80"
   };
 
-  const testimonials = [
+  const gridTestimonials = testimonials.length > 1 ? testimonials.slice(1) : [
     {
-      name: "Ali Raza",
-      title: "Entrepreneur",
-      quote: "The structured approach helped me manage my property investments effectively while improving my overall returns.",
-      rating: 5,
-      avatarSrc: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=200&auto=format&fit=crop&q=60"
-    },
-    {
-      name: "Hina Malik",
-      title: "Teacher",
-      quote: "The holistic approach made a real difference in my home buying journey. I feel calmer, more in control, and happy with the result.",
-      rating: 5,
-      avatarSrc: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=60"
-    },
-    {
-      name: "John Snow",
-      title: "IT Expert",
-      quote: "I struggled with finding the right commercial space for years, but within a few weeks, my business location improved noticeably.",
+      name: "Dr. K. Radhakrishnan",
+      title: "Cardiologist, Kannur Medical College",
+      quote: "KARMA handled our Talap commercial clinic purchase with utmost transparency. The document verification and title clearance were done in less than 48 hours.",
       rating: 5,
       avatarSrc: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=60"
     },
     {
-      name: "Kathie Corl",
-      title: "Neurology",
-      quote: "Within weeks, I noticed a significant improvement in my investment portfolio. The personalized approach made all the difference.",
+      name: "Adv. Meenakshi Menon",
+      title: "High Court Advocate",
+      quote: "As a legal practitioner, I was thoroughly impressed by KARMA’s confidential document vault and encumbrance tracking. Absolutely professional service.",
       rating: 5,
       avatarSrc: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=60"
+    },
+    {
+      name: "K.V. Sasidharan",
+      title: "Retd. PWD Executive Engineer, Payyanur",
+      quote: "The honest pros and cons report saved us from buying a plot in a water-logging zone. Only KARMA has this level of integrity in Malabar.",
+      rating: 5,
+      avatarSrc: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&auto=format&fit=crop&q=60"
+    },
+    {
+      name: "Mathew & Mini Joseph",
+      title: "Bangalore / Chalad",
+      quote: "Relocating back to Kannur was made seamless. KARMA negotiated the best valuation for our ancestral property and closed the sale within 3 weeks.",
+      rating: 5,
+      avatarSrc: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=60"
     }
   ];
 
@@ -119,7 +146,7 @@ export default function ClientsSectionDemo() {
         <div className="text-center mb-16">
           <div className="flex items-center justify-center gap-2 mb-3 md:mb-4">
             <span className="h-1.5 w-1.5 rounded-full bg-[#111]" />
-            <span className="text-xs md:text-sm font-medium tracking-wide text-[#333] uppercase">Testimonials</span>
+            <span className="text-xs md:text-sm font-medium tracking-wide text-[#333] uppercase">Client Experiences</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-[#111]">
             What Our Clients Say
@@ -136,7 +163,7 @@ export default function ClientsSectionDemo() {
 
           {/* Right: 2x2 Grid */}
           <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
-            {testimonials.map((t, idx) => (
+            {gridTestimonials.map((t, idx) => (
               <TestimonialCard key={idx} testimonial={t} />
             ))}
           </div>

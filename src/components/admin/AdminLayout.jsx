@@ -1,17 +1,29 @@
-import { Outlet, NavLink, Link, useLocation } from 'react-router-dom';
+import { Outlet, NavLink, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useContext, useState, useEffect } from 'react';
 import { AppDataContext } from '../../context/AppDataContext';
 
 const TITLES = {
-  '/admin/dashboard': ['Dashboard', 'Saturday, 18 July 2026 · Kannur'],
-  '/admin/properties': ['Properties', 'Published directly — no approval step'],
-  '/admin/crm': ['Leads & CRM', 'Every verified customer, one place'],
-  '/admin/documents': ['Confidential documents', 'Never exposed on the public site']
+  '/admin/dashboard': ['Dashboard', 'Real-time overview of properties, leads and activities'],
+  '/admin/properties': ['Properties', 'Published directly to the live site'],
+  '/admin/crm': ['Leads & CRM', 'Every verified customer and pipeline stage in one place'],
+  '/admin/documents': ['Confidential documents', 'Stored in secure vault — dynamic watermarking'],
+  '/admin/cms': ['Hero & CMS Settings', 'Control homepage hero, announcement banner, contact info & statistics'],
+  '/admin/testimonials': ['Client Testimonials', 'Manage client reviews and ratings displayed on homepage']
 };
 
 function Sidebar({ mobileOpen, closeSidebar }) {
-  const { leads } = useContext(AppDataContext);
+  const { leads, adminUser, logoutAdmin } = useContext(AppDataContext);
+  const navigate = useNavigate();
   const newLeadsCount = leads.filter(l => l.status === 'New').length;
+
+  const handleSignOut = async () => {
+    await logoutAdmin();
+    navigate('/admin/login');
+  };
+
+  const initials = adminUser?.name
+    ? adminUser.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : 'AD';
 
   return (
     <>
@@ -51,19 +63,32 @@ function Sidebar({ mobileOpen, closeSidebar }) {
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5M9 14h6M9 17h4"/></svg> 
           Confidential docs
         </NavLink>
+
+        <NavLink to="/admin/cms" className={({isActive}) => `s-item ${isActive ? 'on' : ''}`} onClick={closeSidebar}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg> 
+          Hero & CMS
+        </NavLink>
+
+        <NavLink to="/admin/testimonials" className={({isActive}) => `s-item ${isActive ? 'on' : ''}`} onClick={closeSidebar}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> 
+          Testimonials
+        </NavLink>
         
-        <div className="s-label">Coming later</div>
-        <button className="s-item">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg> Bulk import
-        </button>
-        <button className="s-item">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M3 20h18M6 16v-5m5 5V8m5 8v-3m5 3V5"/></svg> Analytics
-        </button>
+        <div className="s-label">Public View</div>
+        <Link to="/" className="s-item" target="_blank" rel="noreferrer">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Visit Website ↗
+        </Link>
         
         <div className="side-foot">
-          <div className="avatar">KT</div>
-          <div><b>KARMA Team</b><span>Shared admin login</span></div>
-          <button title="Sign out"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>
+          <div className="avatar">{initials}</div>
+          <div style={{ overflow: 'hidden' }}>
+            <b style={{ display: 'block', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{adminUser?.name || 'Administrator'}</b>
+            <span style={{ display: 'block', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{adminUser?.email || 'admin@karmarealestate.in'}</span>
+          </div>
+          <button title="Sign out" onClick={handleSignOut} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'inherit', padding: '4px' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          </button>
         </div>
       </aside>
     </>
@@ -72,13 +97,28 @@ function Sidebar({ mobileOpen, closeSidebar }) {
 
 export default function AdminLayout() {
   const loc = useLocation();
+  const navigate = useNavigate();
   const [title, sub] = TITLES[loc.pathname] || ['Dashboard', ''];
   const [mobileOpen, setMobileOpen] = useState(false);
   
+  // Auth guard: Check token
+  const token = localStorage.getItem('admin_token');
+  if (!token) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
   // Close sidebar on route change automatically on mobile
   useEffect(() => {
     setMobileOpen(false);
   }, [loc.pathname]);
+
+  const handleAddPropertyClick = () => {
+    if (loc.pathname === '/admin/properties') {
+      window.dispatchEvent(new CustomEvent('open-add-property-modal'));
+    } else {
+      navigate('/admin/properties?add=1');
+    }
+  };
   
   return (
     <div className="admin-theme">
@@ -94,14 +134,14 @@ export default function AdminLayout() {
             <div className="logo" style={{ margin: 0, textDecoration: 'none' }}>
               <div className="logo-mark" style={{ width: '32px', height: '32px', fontSize: '14px' }}>K</div>
             </div>
-            <div style={{width: '24px'}}></div> {/* spacer */}
+            <div style={{width: '24px'}}></div>
           </div>
           
           <div className="topbar">
             <div className="topbar-title">
               <div><h1>{title}</h1><p>{sub}</p></div>
             </div>
-            <button className="btn btn-blue btn-sm">+ Add property</button>
+            <button className="btn btn-blue btn-sm" onClick={handleAddPropertyClick}>+ Add property</button>
           </div>
           <div className="content">
             <Outlet />

@@ -1,27 +1,48 @@
-import { useContext, useState, useRef } from 'react';
-import { AppDataContext, LOCALITIES } from '../../context/AppDataContext';
+import { useContext, useState, useRef, useEffect } from 'react';
+import { AppDataContext, LOCALITIES, formatIndianPrice } from '../../context/AppDataContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
 import ClientsSectionDemo from '../../components/ui/testimonial-card';
+import api from '../../lib/api';
 
 function PropertyCard({ p, idx = 0 }) {
-  const rating = (4.5 + Math.random() * 0.5).toFixed(2);
+  const { wishlist, toggleWishlist } = useContext(AppDataContext);
+  const inWishlist = wishlist.includes(p.id);
+  const rating = (4.5 + ((p.id % 5) * 0.1)).toFixed(1);
+
   return (
-    <Link to={`/kannur/${p.type.toLowerCase()}/${p.id}`} className="pcard">
+    <Link to={`/kannur/${p.type.toLowerCase()}/${p.slug || p.id}`} className="pcard">
       <div className="pc-media">
-        <span className="pc-tag">Guest favourite</span>
-        <button className="pc-heart" onClick={(e) => {e.preventDefault();}} aria-label="Add to wishlist">
-          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation" focusable="false"><path d="M16 28c7-4.73 14-10 14-17a6.98 6.98 0 0 0-7-6.94c-2.8 0-5.46 1.4-6.98 3.73C14.54 5.4 11.88 4 9.08 4 5.2 4 2 7.15 2 11.08c0 7 7 12.27 14 17z"></path></svg>
+        <span className="pc-tag">{p.purpose === 'Rent' ? 'For Rent' : 'Verified'}</span>
+        <button
+          className="pc-heart"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleWishlist(p.id);
+          }}
+          aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+          style={{ background: 'rgba(255,255,255,0.85)', borderRadius: '50%', padding: '6px', display: 'grid', placeItems: 'center' }}
+        >
+          <svg
+            viewBox="0 0 32 32"
+            width="18"
+            height="18"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ fill: inWishlist ? '#ef4444' : 'rgba(0,0,0,0.4)', stroke: inWishlist ? '#ef4444' : '#fff', strokeWidth: 2 }}
+          >
+            <path d="M16 28c7-4.73 14-10 14-17a6.98 6.98 0 0 0-7-6.94c-2.8 0-5.46 1.4-6.98 3.73C14.54 5.4 11.88 4 9.08 4 5.2 4 2 7.15 2 11.08c0 7 7 12.27 14 17z"></path>
+          </svg>
         </button>
         <div className="pc-track">
-          <img src={p.imgs?.[idx % (p.imgs?.length || 1)] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt={p.title} />
+          <img src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt={p.title} />
         </div>
       </div>
       <div className="pc-body">
-        <div className="pc-title">{p.type} in {p.loc}</div>
+        <div className="pc-title">{p.title || `${p.type} in ${p.loc}`}</div>
         <div className="pc-meta" style={{ color: '#717171' }}>
-          <span style={{ color: '#222' }}>₹{p.price} L {p.status === 'rent' ? '/ month' : ''}</span> &middot; ★ {rating}
+          <span style={{ color: '#222', fontWeight: 600 }}>{p.priceFormatted || formatIndianPrice(p.price, p.purpose)}</span> &middot; ★ {rating}
         </div>
       </div>
     </Link>
@@ -62,6 +83,27 @@ export default function Home() {
   const [activeMarker, setActiveMarker] = useState(null);
   const navigate = useNavigate();
 
+  const [cmsSettings, setCmsSettings] = useState({
+    hero_headline: 'Find Your Perfect Property in Kerala',
+    hero_subheadline: 'Discover 1000+ verified properties across Kerala. Search by location, budget & lifestyle.',
+    hero_announcement: '🔥 Kannur Airport Corridor Commercial Lands Available'
+  });
+
+  useEffect(() => {
+    api.get('/settings')
+      .then(res => {
+        if (res.data.success && res.data.data) {
+          setCmsSettings(prev => ({
+            ...prev,
+            hero_headline: res.data.data.hero_headline || prev.hero_headline,
+            hero_subheadline: res.data.data.hero_subheadline || prev.hero_subheadline,
+            hero_announcement: res.data.data.hero_announcement !== undefined ? res.data.data.hero_announcement : prev.hero_announcement,
+          }));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const handleSearch = () => {
     const params = new URLSearchParams();
     if (loc) params.set('loc', loc);
@@ -78,8 +120,25 @@ export default function Home() {
       <section className="hero-split">
         <div className="hero-left">
           <div className="hero-left-content">
-            <h1 className="hero-h1">Find Your Perfect Property in Kerala</h1>
-            <p className="hero-desc" style={{ marginBottom: '32px' }}>Discover 1000+ verified properties across Kerala.<br/>Search by location, budget & lifestyle.</p>
+            {cmsSettings.hero_announcement && (
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '6px 14px',
+                borderRadius: 99,
+                background: 'rgba(6, 95, 70, 0.08)',
+                border: '1px solid rgba(6, 95, 70, 0.18)',
+                color: '#065f46',
+                fontSize: 12.5,
+                fontWeight: 700,
+                marginBottom: 16
+              }}>
+                <span>{cmsSettings.hero_announcement}</span>
+              </div>
+            )}
+            <h1 className="hero-h1">{cmsSettings.hero_headline}</h1>
+            <p className="hero-desc" style={{ marginBottom: '32px' }}>{cmsSettings.hero_subheadline}</p>
 
             {/* Quick Action Pills */}
             <div className="flex flex-wrap gap-3 md:gap-4 mb-10">
@@ -104,35 +163,37 @@ export default function Home() {
             <div className="hero-locs">
               <h3 className="hl-title">Popular Locations</h3>
               <div className="hl-scroll">
-                <div className="hl-card">
+                <Link to="/results?loc=Payyanur" className="hl-card" style={{ textDecoration: 'none', color: 'inherit' }}>
                   <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=200&q=80" alt="Payyanur" />
                   <span>Payyanur</span>
-                </div>
-                <div className="hl-card">
+                </Link>
+                <Link to="/results?loc=Thalassery" className="hl-card" style={{ textDecoration: 'none', color: 'inherit' }}>
                   <img src="https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=200&q=80" alt="Thalassery" />
                   <span>Thalassery</span>
-                </div>
-                <div className="hl-card">
+                </Link>
+                <Link to="/results?loc=Taliparamba" className="hl-card" style={{ textDecoration: 'none', color: 'inherit' }}>
                   <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=200&q=80" alt="Taliparamba" />
                   <span>Taliparamba</span>
-                </div>
-                <div className="hl-card">
+                </Link>
+                <Link to="/results?loc=Iritty" className="hl-card" style={{ textDecoration: 'none', color: 'inherit' }}>
                   <img src="https://images.unsplash.com/photo-1560448204-61dc36dc98c8?auto=format&fit=crop&w=200&q=80" alt="Iritty" />
                   <span>Iritty</span>
-                </div>
-                <div className="hl-card">
+                </Link>
+                <Link to="/results?loc=Mattannur" className="hl-card" style={{ textDecoration: 'none', color: 'inherit' }}>
                   <img src="https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=200&q=80" alt="Mattannur" />
                   <span>Mattannur</span>
-                </div>
-                <div className="hl-card">
+                </Link>
+                <Link to="/results?loc=Kannur City" className="hl-card" style={{ textDecoration: 'none', color: 'inherit' }}>
                   <img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=200&q=80" alt="Kannur City" />
                   <span>Kannur City</span>
-                </div>
-                <div className="hl-card">
-                  <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=200&q=80" alt="Kuthuparamba" />
-                  <span>Kuthuparamba</span>
-                </div>
-                <button className="hl-next"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg></button>
+                </Link>
+                <Link to="/results?loc=Payyambalam" className="hl-card" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=200&q=80" alt="Payyambalam" />
+                  <span>Payyambalam</span>
+                </Link>
+                <Link to="/results" className="hl-next" style={{ display: 'grid', placeItems: 'center', textDecoration: 'none', color: 'inherit' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
+                </Link>
               </div>
             </div>
             
@@ -167,17 +228,17 @@ export default function Home() {
                     onClick={() => setActiveMarker(p.id === activeMarker ? null : p.id)}
                   >
                     <div className={`nq-marker ${activeMarker === p.id ? 'active' : ''}`} style={{ position: 'relative', transform: 'translate(0, -10px)' }}>
-                      ₹{p.price}L
+                      {p.priceFormatted || formatIndianPrice(p.price, p.purpose)}
                       <div className="nq-marker-caret"></div>
                       
                       {activeMarker === p.id && (
                         <div className="nq-map-popup">
-                          <img src={p.imgs?.[0]} alt={p.title} />
+                          <img src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt={p.title} />
                           <div className="nq-mp-info">
                             <b>{p.title}</b>
                             <div className="nq-mp-meta">
-                              <span>⭐ {(4.5 + Math.random() * 0.5).toFixed(1)}</span>
-                              <strong>₹{p.price}L</strong>
+                              <span>⭐ 4.8</span>
+                              <strong>{p.priceFormatted || formatIndianPrice(p.price, p.purpose)}</strong>
                             </div>
                           </div>
                         </div>
@@ -197,24 +258,24 @@ export default function Home() {
 
       <section className="section" id="featured">
         <div className="sec-head" style={{ justifyContent: 'flex-start', gap: '12px' }}>
-          <h2>Based on your Kannur search</h2>
+          <h2>Featured Prime Properties in Kannur</h2>
           <Link to="/results" className="sec-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg></Link>
         </div>
         <CardCarousel>
-          {[...props.filter(p => p.featured), ...props.filter(p => p.featured), ...props].slice(0, 14).map((p, i) => (
-            <PropertyCard key={`${p.id}-${i}`} p={p} idx={i} />
+          {(props.some(p => p.featured) ? props.filter(p => p.featured) : props).slice(0, 10).map((p, i) => (
+            <PropertyCard key={p.id} p={p} idx={i} />
           ))}
         </CardCarousel>
       </section>
 
       <section className="section" id="recent" style={{ paddingBottom: '24px' }}>
         <div className="sec-head" style={{ justifyContent: 'flex-start', gap: '12px' }}>
-          <h2>Kannur homes with free cancellation</h2>
+          <h2>Recently Added Verified Listings</h2>
           <Link to="/results" className="sec-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg></Link>
         </div>
         <CardCarousel>
-          {[...props, ...props, ...props].slice(0, 14).map((p, i) => (
-            <PropertyCard key={`${p.id}-${i}`} p={p} idx={i} />
+          {props.slice(0, 10).map((p, i) => (
+            <PropertyCard key={p.id} p={p} idx={i} />
           ))}
         </CardCarousel>
       </section>

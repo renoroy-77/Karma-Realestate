@@ -1,15 +1,29 @@
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import api from '../../lib/api';
 
 export default function About() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (form.name && form.message) {
-      setSent(true);
-      setForm({ name: '', email: '', message: '' });
+      setSubmitting(true);
+      try {
+        await api.post('/contact', {
+          name: form.name,
+          email: form.email || 'visitor@karmarealestate.in',
+          message: form.message
+        });
+      } catch (err) {
+        console.error('Contact submission error', err);
+      } finally {
+        setSent(true);
+        setSubmitting(false);
+        setForm({ name: '', email: '', message: '' });
+      }
     }
   };
 
@@ -83,18 +97,18 @@ export default function About() {
                 <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:shadow-md transition-shadow">
                   <b className="block text-lg font-bold text-gray-900 mb-1">Kannur Head Office</b>
                   <p className="text-gray-500 text-sm mb-3">2nd Floor, KARMA Tower, Fort Road, Kannur 670001</p>
-                  <div className="text-[#0a523b] font-semibold flex items-center gap-2">
+                  <a href="tel:+919995797450" className="text-[#0a523b] font-semibold flex items-center gap-2 hover:underline">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                    +91 98460 12345
-                  </div>
+                    +91 99957 97450
+                  </a>
                 </div>
                 <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:shadow-md transition-shadow">
                   <b className="block text-lg font-bold text-gray-900 mb-1">Thalassery Branch</b>
                   <p className="text-gray-500 text-sm mb-3">Ground Floor, Pearl Complex, Logans Road, Thalassery 670101</p>
-                  <div className="text-[#0a523b] font-semibold flex items-center gap-2">
+                  <a href="tel:+919995797451" className="text-[#0a523b] font-semibold flex items-center gap-2 hover:underline">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                    +91 98460 54321
-                  </div>
+                    +91 99957 97451
+                  </a>
                 </div>
               </div>
             </div>

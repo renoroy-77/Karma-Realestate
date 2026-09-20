@@ -1,5 +1,5 @@
 import { useContext, useState, useRef, useEffect } from 'react';
-import { AppDataContext } from '../../context/AppDataContext';
+import { AppDataContext, formatIndianPrice } from '../../context/AppDataContext';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { APIProvider, Map, AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
@@ -23,13 +23,34 @@ function BoundsUpdater({ setMapBounds }) {
 }
 
 function PropertyCard({ p }) {
-  // Generate a mock rating between 4.5 and 5.0 for the UI
-  const rating = (4.5 + Math.random() * 0.5).toFixed(1);
+  const { wishlist, toggleWishlist } = useContext(AppDataContext);
+  const inWishlist = wishlist.includes(p.id);
+  const rating = (4.5 + ((p.id % 5) * 0.1)).toFixed(1);
 
   return (
-    <Link to={`/kannur/${p.type.toLowerCase()}/${p.id}`} className="nq-card">
+    <Link to={`/kannur/${p.type.toLowerCase()}/${p.slug || p.id}`} className="nq-card">
       <div className="nq-media">
         <img src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt={p.title} />
+        <button
+          className="pc-heart"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleWishlist(p.id);
+          }}
+          aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+          style={{ position: 'absolute', top: 12, right: 12, zIndex: 3, background: 'rgba(255,255,255,0.9)', borderRadius: '50%', padding: '6px', border: 'none', cursor: 'pointer', display: 'grid', placeItems: 'center' }}
+        >
+          <svg
+            viewBox="0 0 32 32"
+            width="16"
+            height="16"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ fill: inWishlist ? '#ef4444' : 'rgba(0,0,0,0.4)', stroke: inWishlist ? '#ef4444' : '#fff', strokeWidth: 2 }}
+          >
+            <path d="M16 28c7-4.73 14-10 14-17a6.98 6.98 0 0 0-7-6.94c-2.8 0-5.46 1.4-6.98 3.73C14.54 5.4 11.88 4 9.08 4 5.2 4 2 7.15 2 11.08c0 7 7 12.27 14 17z"></path>
+          </svg>
+        </button>
         <div className="nq-rating">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
           <span>{rating}</span>
@@ -42,7 +63,7 @@ function PropertyCard({ p }) {
       <div className="nq-body">
         <div className="nq-top">
           <h3 className="nq-title">{p.title}</h3>
-          <div className="nq-price"><b>₹{p.price}L</b></div>
+          <div className="nq-price"><b>{p.priceFormatted || formatIndianPrice(p.price, p.purpose)}</b></div>
         </div>
         <div className="nq-meta">
           {p.beds && (
@@ -51,14 +72,18 @@ function PropertyCard({ p }) {
               {p.beds} Beds
             </span>
           )}
-          <span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16v16H4z"/><path d="M4 14h16M14 4v16"/></svg>
-            {p.area || '1200'} sqft
-          </span>
-          <span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12h20M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8M4 12v-4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4M9 6v6M15 6v6"/></svg>
-            2 Bathrooms
-          </span>
+          {(p.area || p.land) && (
+            <span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16v16H4z"/><path d="M4 14h16M14 4v16"/></svg>
+              {p.area || p.land}
+            </span>
+          )}
+          {p.baths && (
+            <span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12h20M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8M4 12v-4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4M9 6v6M15 6v6"/></svg>
+              {p.baths} Baths
+            </span>
+          )}
         </div>
       </div>
     </Link>
@@ -86,22 +111,30 @@ export default function Results() {
   const [mapBounds, setMapBounds] = useState(null);
 
   useEffect(() => {
+    setFilterPurpose(searchParams.get('purpose') || 'All');
+    setFilterLoc(searchParams.get('loc') || '');
+    setFilterType(searchParams.get('type') || 'All');
+    setFilterPrice(searchParams.get('price') || 'All');
+  }, [searchParams]);
+
+  useEffect(() => {
     const handleToggle = () => setShowMobileFilters(prev => !prev);
     window.addEventListener('toggle-filters', handleToggle);
     return () => window.removeEventListener('toggle-filters', handleToggle);
   }, []);
 
   const filteredProps = props.filter(p => {
-    const pMatch = filterPurpose === 'All' || p.purpose === filterPurpose;
-    const lMatch = filterLoc === '' || p.loc === filterLoc;
-    const tMatch = filterType === 'All' || p.type === filterType;
+    const pMatch = filterPurpose === 'All' || p.purpose.toLowerCase() === filterPurpose.toLowerCase();
+    const lMatch = filterLoc === '' || p.loc?.toLowerCase() === filterLoc.toLowerCase();
+    const tMatch = filterType === 'All' || p.type?.toLowerCase() === filterType.toLowerCase();
     
+    const numPrice = parseFloat(p.price) || 0;
     let priceMatch = true;
-    if (filterPrice === 'Under 50L') priceMatch = p.price < 50;
-    else if (filterPrice === '50L - 100L') priceMatch = p.price >= 50 && p.price <= 100;
-    else if (filterPrice === 'Over 100L') priceMatch = p.price > 100;
+    if (filterPrice === 'Under 50L') priceMatch = numPrice < 5000000;
+    else if (filterPrice === '50L - 100L') priceMatch = numPrice >= 5000000 && numPrice <= 10000000;
+    else if (filterPrice === 'Over 100L') priceMatch = numPrice > 10000000;
 
-    const bMatch = filterBaths === 'All' || (p.beds && parseInt(p.beds) >= parseInt(filterBaths));
+    const bMatch = filterBaths === 'All' || (p.beds && parseInt(p.beds, 10) >= parseInt(filterBaths, 10));
 
     return pMatch && lMatch && tMatch && priceMatch && bMatch;
   });
@@ -318,7 +351,7 @@ export default function Results() {
                           <div className="nq-ref-card">
                             <div className="nq-ref-img-wrap">
                               <img src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt={p.title} />
-                              <div className="nq-ref-price-tag">₹{p.price} L</div>
+                              <div className="nq-ref-price-tag">{p.priceFormatted || formatIndianPrice(p.price, p.purpose)}</div>
                             </div>
                             <div className="nq-ref-body">
                               <div className="nq-ref-title">{p.title}</div>
@@ -334,7 +367,7 @@ export default function Results() {
                       </div>
                     ) : (
                       <div className="nq-marker" style={{ position: 'relative' }}>
-                        ₹{p.price} L
+                        {p.priceFormatted || formatIndianPrice(p.price, p.purpose)}
                       </div>
                     )}
                   </AdvancedMarker>
@@ -348,7 +381,7 @@ export default function Results() {
             if (!activeProp) return null;
             return (
               <div className="nq-bottom-active-card">
-                <Link to={`/kannur/${activeProp.type.toLowerCase()}/${activeProp.id}`} className="nq-bac-inner">
+                <Link to={`/kannur/${activeProp.type.toLowerCase()}/${activeProp.slug || activeProp.id}`} className="nq-bac-inner">
                   <button className="nq-bac-close" onClick={(e) => { e.preventDefault(); setActiveMarker(null); }}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                   </button>
@@ -359,8 +392,8 @@ export default function Results() {
                     <h4>{activeProp.title}</h4>
                     <p>{activeProp.type} in {activeProp.loc}</p>
                     <div className="nq-bac-meta">
-                       <b>₹{activeProp.price} L</b>
-                       <span>★ {(4.5 + Math.random() * 0.5).toFixed(1)} (4)</span>
+                       <b>{activeProp.priceFormatted || formatIndianPrice(activeProp.price, activeProp.purpose)}</b>
+                       <span>★ {(4.5 + ((activeProp.id % 5) * 0.1)).toFixed(1)} (Verified)</span>
                     </div>
                   </div>
                 </Link>

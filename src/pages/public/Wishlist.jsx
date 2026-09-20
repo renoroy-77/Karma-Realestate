@@ -1,13 +1,30 @@
 import { useContext } from 'react';
-import { AppDataContext } from '../../context/AppDataContext';
+import { AppDataContext, formatIndianPrice } from '../../context/AppDataContext';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 
 function PropertyCard({ p }) {
+  const { toggleWishlist } = useContext(AppDataContext);
+
   return (
-    <Link to={`/kannur/${p.type.toLowerCase()}/${p.id}`} className="pcard">
+    <Link to={`/kannur/${p.type.toLowerCase()}/${p.slug || p.id}`} className="pcard">
       <div className="pc-media">
         <span className={`pc-tag ${p.purpose === 'Sale' ? 'sale' : 'rent'}`}>For {p.purpose.toLowerCase()}</span>
+        <button
+          className="pc-heart"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleWishlist(p.id);
+          }}
+          aria-label="Remove from wishlist"
+          title="Remove from wishlist"
+          style={{ background: 'rgba(255,255,255,0.9)', borderRadius: '50%', padding: '6px', display: 'grid', placeItems: 'center' }}
+        >
+          <svg viewBox="0 0 32 32" width="18" height="18" xmlns="http://www.w3.org/2000/svg" style={{ fill: '#ef4444', stroke: '#ef4444', strokeWidth: 2 }}>
+            <path d="M16 28c7-4.73 14-10 14-17a6.98 6.98 0 0 0-7-6.94c-2.8 0-5.46 1.4-6.98 3.73C14.54 5.4 11.88 4 9.08 4 5.2 4 2 7.15 2 11.08c0 7 7 12.27 14 17z"></path>
+          </svg>
+        </button>
         <div className="pc-track">
           <img src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt={p.title} />
         </div>
@@ -19,9 +36,9 @@ function PropertyCard({ p }) {
         </div>
         <div className="pc-loc">{p.loc}, Kannur</div>
         <div className="pc-meta">
-          {[p.type, p.land || p.area, p.beds ? p.beds + ' BHK' : null].filter(Boolean).join(' · ')}
+          {[p.type, p.area, p.land, p.beds ? p.beds + ' BHK' : null, p.baths ? p.baths + ' Bath' : null].filter(Boolean).join(' · ')}
         </div>
-        <div className="pc-price">₹{p.price} L {p.nego && <small>· Negotiable</small>}</div>
+        <div className="pc-price">{p.priceFormatted || formatIndianPrice(p.price, p.purpose)} {p.nego && <small>· Negotiable</small>}</div>
       </div>
     </Link>
   );

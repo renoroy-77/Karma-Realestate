@@ -1,24 +1,45 @@
-import React, { useRef, useEffect, useContext } from 'react';
+import { useRef, useEffect, useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AppDataContext } from '../../context/AppDataContext';
+import { AppDataContext, formatIndianPrice } from '../../context/AppDataContext';
+import { Helmet } from 'react-helmet-async';
 
 function PropertyCard({ p, idx = 0 }) {
-  const rating = (4.5 + Math.random() * 0.5).toFixed(2);
+  const { wishlist, toggleWishlist } = useContext(AppDataContext);
+  const inWishlist = wishlist.includes(p.id);
+  const rating = (4.5 + ((p.id % 5) * 0.1)).toFixed(1);
+
   return (
-    <Link to={`/kannur/${p.type.toLowerCase()}/${p.id}`} className="pcard">
+    <Link to={`/kannur/${p.type.toLowerCase()}/${p.slug || p.id}`} className="pcard">
       <div className="pc-media">
-        <span className="pc-tag">Guest favourite</span>
-        <button className="pc-heart" onClick={(e) => {e.preventDefault();}} aria-label="Add to wishlist">
-          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation" focusable="false"><path d="M16 28c7-4.73 14-10 14-17a6.98 6.98 0 0 0-7-6.94c-2.8 0-5.46 1.4-6.98 3.73C14.54 5.4 11.88 4 9.08 4 5.2 4 2 7.15 2 11.08c0 7 7 12.27 14 17z"></path></svg>
+        <span className="pc-tag">{p.purpose === 'Rent' ? 'For Rent' : 'Verified'}</span>
+        <button
+          className="pc-heart"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleWishlist(p.id);
+          }}
+          aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+          style={{ background: 'rgba(255,255,255,0.85)', borderRadius: '50%', padding: '6px', display: 'grid', placeItems: 'center' }}
+        >
+          <svg
+            viewBox="0 0 32 32"
+            width="18"
+            height="18"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ fill: inWishlist ? '#ef4444' : 'rgba(0,0,0,0.4)', stroke: inWishlist ? '#ef4444' : '#fff', strokeWidth: 2 }}
+          >
+            <path d="M16 28c7-4.73 14-10 14-17a6.98 6.98 0 0 0-7-6.94c-2.8 0-5.46 1.4-6.98 3.73C14.54 5.4 11.88 4 9.08 4 5.2 4 2 7.15 2 11.08c0 7 7 12.27 14 17z"></path>
+          </svg>
         </button>
         <div className="pc-track">
-          <img src={p.imgs?.[idx % (p.imgs?.length || 1)] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt={p.title} />
+          <img src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt={p.title} />
         </div>
       </div>
       <div className="pc-body">
-        <div className="pc-title">{p.type} in {p.loc}</div>
+        <div className="pc-title">{p.title || `${p.type} in ${p.loc}`}</div>
         <div className="pc-meta" style={{ color: '#717171' }}>
-          <span style={{ color: '#222' }}>₹{p.price} L {p.status === 'rent' ? '/ month' : ''}</span> &middot; ★ {rating}
+          <span style={{ color: '#222', fontWeight: 600 }}>{p.priceFormatted || formatIndianPrice(p.price, p.purpose)}</span> &middot; ★ {rating}
         </div>
       </div>
     </Link>
@@ -54,86 +75,118 @@ function CardCarousel({ children }) {
 
 export default function PropertiesPage() {
   const { props } = useContext(AppDataContext);
+  const [activeCategory, setActiveCategory] = useState('All');
 
   useEffect(() => {
-    document.title = 'KARMA Real Estate | Properties';
     window.scrollTo(0, 0);
   }, []);
 
+  const categories = [
+    { label: 'All', icon: '🌍' },
+    { label: 'House', icon: '🏡' },
+    { label: 'Apartment', icon: '🏢' },
+    { label: 'Plot', icon: '🌾' },
+    { label: 'Commercial', icon: '🏪' }
+  ];
+
+  const filteredByCategory = activeCategory === 'All'
+    ? props
+    : props.filter(p => p.type === activeCategory || (activeCategory === 'House' && p.type === 'Villa'));
+
+  const villas = props.filter(p => p.type === 'House' || p.type === 'Villa');
+  const plots = props.filter(p => p.type === 'Plot' || p.type === 'Land');
+  const commercial = props.filter(p => p.type === 'Commercial');
+
   return (
-    <div className="props-page pb-30" style={{ paddingTop: '100px' }}>
+    <>
+      <Helmet>
+        <title>Explore Properties in Kannur | KARMA Real Estate</title>
+        <meta name="description" content="Browse verified houses, luxury villas, plots, and commercial properties across Kannur with KARMA Real Estate." />
+      </Helmet>
       
-      {/* Categories Subnav */}
-      <div className="props-subnav-wrap">
-        <div className="props-subnav">
-          <button className="ps-item active">
-            <span className="ps-icon">🌍</span>
-            <span>All</span>
-          </button>
-          <button className="ps-item">
-            <span className="ps-icon">🏡</span>
-            <span>Homes</span>
-          </button>
-          <button className="ps-item">
-            <span className="ps-icon">🎈</span>
-            <span>Experiences</span>
-          </button>
-          <button className="ps-item">
-            <span className="ps-icon">🛎️</span>
-            <span>Services</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Continue Searching Banner */}
-      <div className="section" style={{ paddingTop: '24px' }}>
-        <div className="continue-search">
-          <div className="cs-img">
-            <img src={props[0]?.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt="recent" />
-          </div>
-          <div className="cs-info">
-            <strong>Continue searching for homes in Kannur</strong>
-            <span>16-17 Sept &middot; 5 guests</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
+      <div className="props-page pb-30" style={{ paddingTop: '100px' }}>
+        
+        {/* Categories Subnav */}
+        <div className="props-subnav-wrap">
+          <div className="props-subnav">
+            {categories.map(cat => (
+              <button
+                key={cat.label}
+                className={`ps-item ${activeCategory === cat.label ? 'active' : ''}`}
+                onClick={() => setActiveCategory(cat.label)}
+              >
+                <span className="ps-icon">{cat.icon}</span>
+                <span>{cat.label === 'House' ? 'Villas & Houses' : cat.label === 'Plot' ? 'Plots & Land' : cat.label}</span>
+              </button>
+            ))}
           </div>
         </div>
+
+        {/* Continue Searching Banner */}
+        <div className="section" style={{ paddingTop: '24px' }}>
+          <Link to="/results" style={{ textDecoration: 'none' }}>
+            <div className="continue-search" style={{ cursor: 'pointer' }}>
+              <div className="cs-img">
+                <img src={props[0]?.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt="recent" />
+              </div>
+              <div className="cs-info">
+                <strong>Explore verified properties across Kannur</strong>
+                <span>Filter by price, bedrooms, locality & verified title deeds</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        {/* Selected Category Carousel */}
+        <section className="section" id="featured">
+          <div className="sec-head" style={{ justifyContent: 'flex-start', gap: '12px' }}>
+            <h2>{activeCategory === 'All' ? 'All Verified Properties' : `${activeCategory} Listings in Kannur`} · {filteredByCategory.length}</h2>
+            <Link to={activeCategory === 'All' ? '/results' : `/results?type=${activeCategory}`} className="sec-arrow">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg>
+            </Link>
+          </div>
+          {filteredByCategory.length > 0 ? (
+            <CardCarousel>
+              {filteredByCategory.map((p, i) => (
+                <PropertyCard key={`${p.id}-${i}`} p={p} idx={i} />
+              ))}
+            </CardCarousel>
+          ) : (
+            <div style={{ padding: '32px 0', color: 'var(--ink-2)' }}>No properties in this category yet.</div>
+          )}
+        </section>
+
+        {/* Villas Section */}
+        {villas.length > 0 && (
+          <section className="section" id="villas">
+            <div className="sec-head" style={{ justifyContent: 'flex-start', gap: '12px' }}>
+              <h2>Luxury Villas & Independent Houses</h2>
+              <Link to="/results?type=House" className="sec-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg></Link>
+            </div>
+            <CardCarousel>
+              {villas.map((p, i) => (
+                <PropertyCard key={`villa-${p.id}-${i}`} p={p} idx={i} />
+              ))}
+            </CardCarousel>
+          </section>
+        )}
+
+        {/* Plots Section */}
+        {plots.length > 0 && (
+          <section className="section" id="plots" style={{ paddingBottom: '24px' }}>
+            <div className="sec-head" style={{ justifyContent: 'flex-start', gap: '12px' }}>
+              <h2>Residential & Commercial Land</h2>
+              <Link to="/results?type=Plot" className="sec-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg></Link>
+            </div>
+            <CardCarousel>
+              {plots.map((p, i) => (
+                <PropertyCard key={`plot-${p.id}-${i}`} p={p} idx={i} />
+              ))}
+            </CardCarousel>
+          </section>
+        )}
       </div>
-
-      <section className="section" id="featured">
-        <div className="sec-head" style={{ justifyContent: 'flex-start', gap: '12px' }}>
-          <h2>Based on your Kannur search</h2>
-          <Link to="/results" className="sec-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg></Link>
-        </div>
-        <CardCarousel>
-          {[...props.filter(p => p.featured), ...props.filter(p => p.featured), ...props].slice(0, 14).map((p, i) => (
-            <PropertyCard key={`${p.id}-${i}`} p={p} idx={i} />
-          ))}
-        </CardCarousel>
-      </section>
-
-      <section className="section" id="payyambalam">
-        <div className="sec-head" style={{ justifyContent: 'flex-start', gap: '12px' }}>
-          <h2>Stay near Payyambalam Beach</h2>
-          <Link to="/results" className="sec-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg></Link>
-        </div>
-        <CardCarousel>
-          {[...props].reverse().slice(0, 14).map((p, i) => (
-            <PropertyCard key={`${p.id}-${i}`} p={p} idx={i} />
-          ))}
-        </CardCarousel>
-      </section>
-
-      <section className="section" id="cancellation" style={{ paddingBottom: '24px' }}>
-        <div className="sec-head" style={{ justifyContent: 'flex-start', gap: '12px' }}>
-          <h2>Kannur homes with free cancellation</h2>
-          <Link to="/results" className="sec-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg></Link>
-        </div>
-        <CardCarousel>
-          {[...props, ...props, ...props].slice(0, 14).map((p, i) => (
-            <PropertyCard key={`${p.id}-${i}`} p={p} idx={i} />
-          ))}
-        </CardCarousel>
-      </section>
-    </div>
+    </>
   );
 }

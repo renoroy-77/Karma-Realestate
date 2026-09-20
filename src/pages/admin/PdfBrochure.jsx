@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AppDataContext } from '../../context/AppDataContext';
+import { AppDataContext, formatIndianPrice } from '../../context/AppDataContext';
 import { Helmet } from 'react-helmet-async';
 
 export default function PdfBrochure() {
@@ -116,7 +116,7 @@ export default function PdfBrochure() {
           <div className="pdf-contact">
             Fort Road, Kannur City<br/>
             Kerala 670001<br/>
-            +91 98460 12345 • karma.com
+            +91 99957 97450 • karmarealestate.in
           </div>
         </div>
 
@@ -130,7 +130,7 @@ export default function PdfBrochure() {
             <p className="pdf-subtitle">{p.loc} • {p.type} for {p.purpose}</p>
           </div>
           <div className="pdf-price">
-            ₹{p.price} L<br/>
+            {p.priceFormatted || formatIndianPrice(p.price, p.purpose)}<br/>
             {p.nego && <span style={{fontSize: 12, fontWeight: 500, color: '#6b7280'}}>Negotiable</span>}
           </div>
         </div>
@@ -142,12 +142,17 @@ export default function PdfBrochure() {
           </div>
           <div className="spec-item">
             <span className="spec-label">Area</span>
-            <span className="spec-value">{p.area || p.land}</span>
+            <span className="spec-value">{p.area || p.land || 'N/A'}</span>
           </div>
           {p.beds ? (
             <div className="spec-item">
               <span className="spec-label">Bedrooms</span>
               <span className="spec-value">{p.beds} BHK</span>
+            </div>
+          ) : p.baths ? (
+            <div className="spec-item">
+              <span className="spec-label">Bathrooms</span>
+              <span className="spec-value">{p.baths} Bath</span>
             </div>
           ) : (
             <div className="spec-item">
@@ -157,7 +162,7 @@ export default function PdfBrochure() {
           )}
           <div className="spec-item">
             <span className="spec-label">Listed Date</span>
-            <span className="spec-value">{p.listed}</span>
+            <span className="spec-value">{p.listed || '2026-09-20'}</span>
           </div>
         </div>
 
@@ -165,6 +170,19 @@ export default function PdfBrochure() {
           <h3>Overview</h3>
           <p>{p.desc}</p>
         </div>
+
+        {p.amenities && p.amenities.length > 0 && (
+          <div className="pdf-section">
+            <h3>Amenities & Facilities</h3>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '6px' }}>
+              {p.amenities.map((a, i) => (
+                <span key={i} style={{ padding: '4px 10px', background: '#f0fdf4', color: '#166534', borderRadius: '6px', fontSize: '11px', fontWeight: 600, border: '1px solid #bbf7d0' }}>
+                  ✓ {a}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {(p.pros || p.cons) && (
           <div className="pdf-section">

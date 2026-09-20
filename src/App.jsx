@@ -20,6 +20,8 @@ import Properties from './pages/admin/Properties'
 import CRM from './pages/admin/CRM'
 import Documents from './pages/admin/Documents'
 import PdfBrochure from './pages/admin/PdfBrochure'
+import CMS from './pages/admin/CMS'
+import Testimonials from './pages/admin/Testimonials'
 
 function App() {
   return (
@@ -31,6 +33,7 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/properties" element={<PropertiesPage />} />
+        <Route path="/properties/:slug" element={<PropertyDetail />} />
         <Route path="/kannur/:type/:slug" element={<PropertyDetail />} />
       </Route>
 
@@ -42,6 +45,8 @@ function App() {
         <Route path="properties" element={<Properties />} />
         <Route path="crm" element={<CRM />} />
         <Route path="documents" element={<Documents />} />
+        <Route path="cms" element={<CMS />} />
+        <Route path="testimonials" element={<Testimonials />} />
       </Route>
     </Routes>
   )
