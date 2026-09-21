@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Admin\LeadController as AdminLeadController;
 use App\Http\Controllers\Api\Admin\PropertyManageController as AdminPropertyManageController;
 use App\Http\Controllers\Api\Admin\PropertyMediaController as AdminPropertyMediaController;
 use App\Http\Controllers\Api\Admin\SiteSettingController as AdminSiteSettingController;
+use App\Http\Controllers\Api\Admin\SiteVisitManageController as AdminSiteVisitManageController;
 use App\Http\Controllers\Api\Admin\TestimonialManageController as AdminTestimonialController;
 use App\Http\Controllers\Api\Public\CompareController;
 use App\Http\Controllers\Api\Public\HomeController;
@@ -107,6 +108,11 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::match(['patch', 'put'], '/leads/{id}/status', [AdminLeadController::class, 'updateStatus']);
     Route::post('/leads/{id}/notes', [AdminLeadController::class, 'addNote']);
     Route::post('/leads/merge', [AdminLeadController::class, 'merge']);
+
+    // Tour & Site Visit Management
+    Route::get('/site-visits', [AdminSiteVisitManageController::class, 'index']);
+    Route::patch('/site-visits/{id}/status', [AdminSiteVisitManageController::class, 'updateStatus']);
+    Route::delete('/site-visits/{id}', [AdminSiteVisitManageController::class, 'destroy']);
 
     // CMS & Hero Settings
     Route::get('/settings', [AdminSiteSettingController::class, 'index']);

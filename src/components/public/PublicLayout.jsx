@@ -1,5 +1,6 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useEffect, useContext, useRef } from 'react'
+import { toast } from 'sonner'
 import { LOCALITIES, AppDataContext } from '../../context/AppDataContext'
 import api from '../../lib/api'
 
@@ -176,6 +177,9 @@ function Header() {
       });
 
       if (res.data.success) {
+        toast.success(isResend ? 'Fresh verification code dispatched!' : 'Verification code sent to your email!', {
+          description: `Check your inbox at ${formData.email.trim()}`
+        });
         if (isResend) {
           setResendSuccess('✓ A fresh 6-digit verification code has been dispatched to your email.');
           setResendCooldown(30);
@@ -190,6 +194,7 @@ function Header() {
                   err.response?.data?.errors?.phone?.[0] || 
                   (err.message === 'Network Error' ? 'Unable to connect to verification server. Please verify backend server is running.' : 'Failed to send OTP code.');
       setOtpError(msg);
+      toast.error(msg);
     } finally {
       setOtpLoading(false);
     }
@@ -228,6 +233,9 @@ function Header() {
         localStorage.setItem('lead_data', JSON.stringify(verifiedUser));
         setUser(verifiedUser);
         setStep(2);
+        toast.success('Access Granted! GPS coordinates and confidential insights unlocked.', {
+          description: `Welcome, ${verifiedUser.name}!`
+        });
         
         // Automatically close modal after celebration
         setTimeout(() => {
@@ -239,6 +247,7 @@ function Header() {
     } catch (err) {
       const msg = err.response?.data?.message || err.response?.data?.errors?.otp?.[0] || 'Invalid verification code. Please check and try again.';
       setOtpError(msg);
+      toast.error(msg);
       setAttempts(a => a + 1);
       setOtp(['', '', '', '', '', '']);
       otpRefs[0]?.current?.focus();
@@ -254,6 +263,7 @@ function Header() {
     localStorage.removeItem('lead_token');
     localStorage.removeItem('lead_data');
     setUser(null);
+    toast.info('Logged out successfully');
   };
 
   // Listen for footer sell button click

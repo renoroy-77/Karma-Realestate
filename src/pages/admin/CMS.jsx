@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import api from '../../lib/api';
 
 export default function CMS() {
@@ -52,11 +53,14 @@ export default function CMS() {
       const res = await api.post('/admin/settings', { settings: cmsData });
       if (res.data.success) {
         setSuccessMsg('All homepage and CMS settings have been saved successfully!');
+        toast.success('Hero and CMS settings updated live on website!');
         setTimeout(() => setSuccessMsg(''), 4000);
       }
     } catch (err) {
       console.error('Error saving settings', err);
-      setErrorMsg(err.response?.data?.message || 'Failed to save settings. Please try again.');
+      const msg = err.response?.data?.message || 'Failed to save settings. Please try again.';
+      setErrorMsg(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }

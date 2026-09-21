@@ -153,6 +153,7 @@ export default function Properties() {
     setErrorMessage('');
     setNewPro('');
     setNewCon('');
+    setCustomAmenityInput('');
 
     if (mode === 'edit' && p) {
       setFormData({
@@ -255,6 +256,21 @@ export default function Properties() {
 
   const handleRemoveCon = (index) => {
     setFormData(prev => ({ ...prev, cons: prev.cons.filter((_, i) => i !== index) }));
+  };
+
+  const [customAmenityInput, setCustomAmenityInput] = useState('');
+
+  const handleAddCustomAmenity = (e) => {
+    if (e) e.preventDefault();
+    const trimmed = customAmenityInput.trim();
+    if (!trimmed) return;
+    if (!formData.amenities?.includes(trimmed)) {
+      setFormData(prev => ({
+        ...prev,
+        amenities: [...(prev.amenities || []), trimmed]
+      }));
+    }
+    setCustomAmenityInput('');
   };
 
   const handleToggleAmenity = (amenity) => {
@@ -1761,8 +1777,108 @@ export default function Properties() {
 
                       {/* Amenities Grid */}
                       <div className="admin-section-card" style={{ background: '#ffffff', borderColor: '#e2e8f0' }}>
-                        <div className="admin-section-title">
+                        <div className="admin-section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span>🏷️ Select Property Amenities</span>
+                          <span style={{ fontSize: 12, color: '#64748b', fontWeight: 500 }}>
+                            {formData.amenities?.length || 0} selected
+                          </span>
+                        </div>
+
+                        {/* Custom Amenity Input Field */}
+                        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                          <input
+                            type="text"
+                            placeholder="Type custom amenity (e.g. Helipad, Private Garden, Sea View Terrace)..."
+                            value={customAmenityInput}
+                            onChange={(e) => setCustomAmenityInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddCustomAmenity(e);
+                              }
+                            }}
+                            style={{
+                              flex: 1,
+                              padding: '9px 14px',
+                              borderRadius: 8,
+                              border: '1px solid #cbd5e1',
+                              fontSize: 13,
+                              outline: 'none'
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={handleAddCustomAmenity}
+                            style={{
+                              padding: '9px 18px',
+                              background: '#065f46',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: 8,
+                              fontSize: 13,
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6,
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            + Add Amenity
+                          </button>
+                        </div>
+
+                        {/* Custom Added Amenities (if not in preset AMENITIES_LIST) */}
+                        {formData.amenities && formData.amenities.some(a => !AMENITIES_LIST.includes(a)) && (
+                          <div style={{ marginBottom: 14 }}>
+                            <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#047857', marginBottom: 8 }}>
+                              Custom Amenities Added:
+                            </div>
+                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                              {formData.amenities.filter(a => !AMENITIES_LIST.includes(a)).map((customAmenity, idx) => (
+                                <span
+                                  key={`custom-${idx}`}
+                                  className="admin-item-chip"
+                                  style={{
+                                    background: '#065f46',
+                                    color: '#fff',
+                                    borderColor: '#065f46',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                    paddingRight: 8
+                                  }}
+                                >
+                                  <span>✓ {customAmenity}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleAmenity(customAmenity)}
+                                    style={{
+                                      background: 'rgba(255,255,255,0.2)',
+                                      border: 'none',
+                                      color: '#fff',
+                                      cursor: 'pointer',
+                                      padding: '2px 5px',
+                                      borderRadius: '50%',
+                                      fontSize: 11,
+                                      fontWeight: 'bold',
+                                      lineHeight: 1,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center'
+                                    }}
+                                    title={`Remove ${customAmenity}`}
+                                  >
+                                    ✕
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', marginBottom: 8 }}>
+                          Preset Amenities:
                         </div>
                         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                           {AMENITIES_LIST.map((amenity, idx) => {

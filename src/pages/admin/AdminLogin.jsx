@@ -1,6 +1,7 @@
 import { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { toast } from 'sonner';
 import api from '../../lib/api';
 import { AppDataContext } from '../../context/AppDataContext';
 
@@ -25,10 +26,13 @@ export default function AdminLogin() {
       if (res.data.success) {
         localStorage.setItem('admin_token', res.data.token);
         setAdminUser(res.data.admin);
+        toast.success(`Welcome back, ${res.data.admin?.name || 'Admin'}!`);
         navigate('/admin/dashboard');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials. Please verify your email and password.');
+      const msg = err.response?.data?.message || 'Invalid credentials. Please verify your email and password.';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

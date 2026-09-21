@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import api from '../lib/api';
 
 export const LOCALITIES = [
@@ -379,6 +380,7 @@ export function AppDataProvider({ children }) {
         }
       }
       refreshAdminData();
+      toast.success('Property created successfully!');
       return created;
     }
     throw new Error(res.data.message || 'Failed to create property');
@@ -428,6 +430,7 @@ export function AppDataProvider({ children }) {
         }
       }
       refreshAdminData();
+      toast.success('Property updated successfully!');
       return updated;
     }
     throw new Error(res.data.message || 'Failed to update property');
@@ -437,6 +440,7 @@ export function AppDataProvider({ children }) {
     const res = await api.delete(`/admin/properties/${id}`);
     if (res.data.success) {
       setProps(prev => prev.filter(p => p.id !== id));
+      toast.success('Property deleted successfully!');
       return true;
     }
     throw new Error(res.data.message || 'Failed to delete property');
@@ -447,10 +451,12 @@ export function AppDataProvider({ children }) {
       const res = await api.delete(`/admin/media/${mediaId}`);
       if (res.data.success) {
         refreshAdminData();
+        toast.info('Media file removed');
         return true;
       }
     } catch (err) {
       console.error('Failed to delete media', err);
+      toast.error('Failed to delete media file');
       throw err;
     }
   };
@@ -463,6 +469,7 @@ export function AppDataProvider({ children }) {
     });
     if (res.data.success) {
       refreshAdminData();
+      toast.success('PDF brochure uploaded successfully!');
       return res.data.data?.brochure_url;
     }
   };
@@ -471,6 +478,7 @@ export function AppDataProvider({ children }) {
     const res = await api.delete(`/admin/properties/${propertyId}/brochure`);
     if (res.data.success) {
       refreshAdminData();
+      toast.info('PDF brochure deleted.');
       return true;
     }
   };
@@ -481,8 +489,10 @@ export function AppDataProvider({ children }) {
     setProps(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
     try {
       await api.patch(`/admin/properties/${id}/status`, { status: backendStatus });
+      toast.success(`Property marked as ${newStatus}`);
     } catch (err) {
       console.error('Failed to update property status', err);
+      toast.error('Failed to update property status');
       refreshAdminData();
     }
   };
@@ -492,8 +502,10 @@ export function AppDataProvider({ children }) {
     setProps(prev => prev.map(p => p.id === id ? { ...p, pub: isPublished } : p));
     try {
       await api.patch(`/admin/properties/${id}/publish`, { is_published: isPublished });
+      toast.success(isPublished ? 'Property published live!' : 'Property unpublished (Draft)');
     } catch (err) {
       console.error('Failed to toggle property publish', err);
+      toast.error('Failed to update publish state');
       refreshAdminData();
     }
   };
@@ -536,6 +548,7 @@ export function AppDataProvider({ children }) {
     });
     if (res.data.success) {
       await fetchPropertyDocuments(propertyId);
+      toast.success('Confidential document uploaded to vault');
       return res.data.data;
     }
     throw new Error(res.data.message || 'Upload failed');
@@ -548,6 +561,7 @@ export function AppDataProvider({ children }) {
         ...prev,
         [propertyId]: (prev[propertyId] || []).filter(d => d.id !== docId)
       }));
+      toast.success('Document removed from vault');
       return true;
     }
     throw new Error(res.data.message || 'Failed to delete document');
@@ -557,8 +571,10 @@ export function AppDataProvider({ children }) {
     setRemarks(prev => ({ ...prev, [propertyId]: remarkText }));
     try {
       await api.patch(`/admin/properties/${propertyId}/remarks`, { remark: remarkText });
+      toast.success('Internal remark saved');
     } catch (err) {
       console.error('Failed to save remark', err);
+      toast.error('Failed to save remark');
     }
   };
 
@@ -568,8 +584,10 @@ export function AppDataProvider({ children }) {
     setLeads(prev => prev.map(l => l.id === leadId ? { ...l, status: newStatus } : l));
     try {
       await api.patch(`/admin/leads/${leadId}/status`, { status: backendStatus });
+      toast.success(`Lead status updated to ${newStatus}`);
     } catch (err) {
       console.error('Failed to update lead status', err);
+      toast.error('Failed to update lead status');
       refreshAdminData();
     }
   };
@@ -584,6 +602,7 @@ export function AppDataProvider({ children }) {
         }
         return l;
       }));
+      toast.success('Note logged to lead timeline');
       return res.data.data;
     }
     throw new Error(res.data.message || 'Failed to add note');
@@ -596,6 +615,7 @@ export function AppDataProvider({ children }) {
     });
     if (res.data.success) {
       refreshAdminData();
+      toast.success('Leads merged successfully!');
       return res.data.data;
     }
     throw new Error(res.data.message || 'Failed to merge leads');

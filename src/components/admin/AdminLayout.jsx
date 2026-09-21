@@ -11,6 +11,8 @@ const TITLES = {
   '/admin/testimonials': ['Client Testimonials', 'Manage client reviews and ratings displayed on homepage']
 };
 
+import { toast } from 'sonner';
+
 function Sidebar({ mobileOpen, closeSidebar }) {
   const { leads, adminUser, logoutAdmin } = useContext(AppDataContext);
   const navigate = useNavigate();
@@ -18,6 +20,7 @@ function Sidebar({ mobileOpen, closeSidebar }) {
 
   const handleSignOut = async () => {
     await logoutAdmin();
+    toast.info('Signed out of admin panel');
     navigate('/admin/login');
   };
 

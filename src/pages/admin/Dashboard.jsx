@@ -76,7 +76,7 @@ export default function Dashboard() {
           <span>New leads to contact</span>
         </Link>
         
-        <Link to="/admin/crm" className="stat">
+        <Link to="/admin/crm?tab=tours" className="stat">
           <div className="s-top">
             <div className="s-ic" style={{ background: 'var(--amber-soft)', color: 'var(--amber)' }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg>
@@ -104,10 +104,10 @@ export default function Dashboard() {
         <div className="panel" style={{ marginBottom: 20 }}>
           <div className="panel-hd">
             <div>
-              <h3>Upcoming Site Visits</h3>
-              <p>Confirmed appointments requested by buyers online</p>
+              <h3>Upcoming Site Visits & Tours</h3>
+              <p>Confirmed and pending appointments requested by buyers online</p>
             </div>
-            <Link to="/admin/crm" className="btn btn-ghost btn-sm">CRM</Link>
+            <Link to="/admin/crm?tab=tours" className="btn btn-ghost btn-sm">Manage All Tours →</Link>
           </div>
           <div className="table-scroll">
             <table className="tbl">

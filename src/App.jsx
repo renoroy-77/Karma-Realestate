@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { Toaster } from 'sonner'
 
 // Layouts
 import PublicLayout from './components/public/PublicLayout'
@@ -25,7 +26,9 @@ import Testimonials from './pages/admin/Testimonials'
 
 function App() {
   return (
-    <Routes>
+    <>
+      <Toaster richColors position="top-right" closeButton duration={3500} />
+      <Routes>
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/results" element={<Results />} />
@@ -49,6 +52,7 @@ function App() {
         <Route path="testimonials" element={<Testimonials />} />
       </Route>
     </Routes>
+    </>
   )
 }
 

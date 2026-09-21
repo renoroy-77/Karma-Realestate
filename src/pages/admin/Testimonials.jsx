@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import api from '../../lib/api';
 
 const AVATAR_PRESETS = [
@@ -17,7 +18,6 @@ export default function Testimonials() {
   const [modalMode, setModalMode] = useState('add'); // 'add' | 'edit'
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [notice, setNotice] = useState('');
 
   const [formData, setFormData] = useState({
     client_name: '',
@@ -60,16 +60,16 @@ export default function Testimonials() {
     setShowModal(true);
   };
 
-  const openEditModal = (item) => {
+  const openEditModal = (t) => {
     setModalMode('edit');
-    setEditingId(item.id);
+    setEditingId(t.id);
     setFormData({
-      client_name: item.client_name,
-      client_role: item.client_role,
-      content: item.content,
-      rating: item.rating || 5,
-      photo_url: item.photo_url || AVATAR_PRESETS[0],
-      is_active: Boolean(item.is_active)
+      client_name: t.client_name,
+      client_role: t.client_role || '',
+      content: t.content,
+      rating: t.rating || 5,
+      photo_url: t.photo_url || AVATAR_PRESETS[0],
+      is_active: Boolean(t.is_active)
     });
     setShowModal(true);
   };
@@ -77,7 +77,7 @@ export default function Testimonials() {
   const handleSave = async (e) => {
     e.preventDefault();
     if (!formData.client_name || !formData.content) {
-      alert('Please fill in client name and review content.');
+      toast.error('Please fill in client name and review content.');
       return;
     }
 
@@ -87,20 +87,19 @@ export default function Testimonials() {
         const res = await api.post('/admin/testimonials', formData);
         if (res.data.success) {
           setItems(prev => [res.data.data, ...prev]);
-          setNotice('Testimonial added successfully!');
+          toast.success('Testimonial published successfully!');
         }
       } else {
         const res = await api.put(`/admin/testimonials/${editingId}`, formData);
         if (res.data.success) {
           setItems(prev => prev.map(item => item.id === editingId ? res.data.data : item));
-          setNotice('Testimonial updated successfully!');
+          toast.success('Testimonial updated successfully!');
         }
       }
       setShowModal(false);
-      setTimeout(() => setNotice(''), 4000);
     } catch (err) {
       console.error('Error saving testimonial', err);
-      alert('Failed to save testimonial. Please check inputs and try again.');
+      toast.error('Failed to save testimonial. Please check inputs and try again.');
     } finally {
       setSaving(false);
     }
@@ -111,8 +110,10 @@ export default function Testimonials() {
       // Optimistic update
       setItems(prev => prev.map(t => t.id === id ? { ...t, is_active: !t.is_active } : t));
       await api.patch(`/admin/testimonials/${id}/toggle`);
+      toast.success('Testimonial visibility updated');
     } catch (err) {
       console.error('Failed to toggle status', err);
+      toast.error('Failed to update status');
       fetchTestimonials();
     }
   };
@@ -123,10 +124,10 @@ export default function Testimonials() {
     try {
       setItems(prev => prev.filter(t => t.id !== id));
       await api.delete(`/admin/testimonials/${id}`);
-      setNotice('Testimonial deleted.');
-      setTimeout(() => setNotice(''), 3000);
+      toast.success('Testimonial deleted');
     } catch (err) {
       console.error('Failed to delete testimonial', err);
+      toast.error('Failed to delete testimonial');
       fetchTestimonials();
     }
   };

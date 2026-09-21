@@ -2,6 +2,7 @@ import { useContext, useState, useEffect, useRef } from 'react';
 import { AppDataContext, mapBackendPropToFrontend, formatIndianPrice } from '../../context/AppDataContext';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { toast } from 'sonner';
 import api from '../../lib/api';
 
 function CardCarousel({ children }) {
@@ -241,13 +242,16 @@ export default function PropertyDetail() {
   // Site Visit Modal State
   const [visitStep, setVisitStep] = useState(0); // 0: form, 1: success
   const [visitDate, setVisitDate] = useState('');
-  const [visitTime, setVisitTime] = useState('Morning (10 AM - 12 PM)');
+  const [visitTime, setVisitTime] = useState('10:00 AM');
+  const [submittingTour, setSubmittingTour] = useState(false);
 
   // Initial optimistic match from context
   const contextProp = props.find(prop => prop.slug === slug || String(prop.id) === String(slug));
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    toast.dismiss();
+    setVisitStep(0);
     setPropData(null);
     let isMounted = true;
     setLoading(!contextProp);
@@ -312,15 +316,19 @@ export default function PropertyDetail() {
       navigator.share({ title: p.title, url: window.location.href }).catch(() => {});
     } else {
       navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
+      toast.success('Listing link copied to clipboard!');
     }
   };
 
   const handleVisitSubmit = async () => {
+    if (submittingTour) return;
     if (!user) {
       setShowAuthModal(true);
       return;
     }
+
+    setSubmittingTour(true);
+    const bookingDate = visitDate || new Date().toISOString().split('T')[0];
 
     try {
       await api.post('/site-visit', {
@@ -328,22 +336,28 @@ export default function PropertyDetail() {
         visitor_name: user?.name || 'Interested Buyer',
         visitor_email: user?.email || (user?.phone ? `${user.phone}@karmarealestate.in` : 'buyer@karmarealestate.in'),
         visitor_phone: user?.phone || '9999999999',
-        preferred_date: visitDate,
+        preferred_date: bookingDate,
         preferred_time_slot: visitTime,
         notes: `Tour booked from website for ${p.title}`
       });
+      toast.success('Tour request submitted! Our Kannur agent will contact you shortly.', {
+        description: `${p.title} • ${bookingDate} (${visitTime})`
+      });
+
+      addLead({
+        name: user?.name || 'Interested Buyer',
+        phone: user?.phone || 'Unknown',
+        loc: user?.loc || 'Kannur',
+        src: 'Site visit request',
+        props: [p.title]
+      });
+      setVisitStep(1);
     } catch (err) {
       console.error('Site visit API submission error', err);
+      toast.error('Failed to submit tour request. Please try again or WhatsApp us.');
+    } finally {
+      setSubmittingTour(false);
     }
-
-    addLead({
-      name: user?.name || 'Interested Buyer',
-      phone: user?.phone || 'Unknown',
-      loc: user?.loc || 'Kannur',
-      src: 'Site visit request',
-      props: [p.title]
-    });
-    setVisitStep(1);
   };
 
   // WhatsApp & Call number sanitizer (Ensures 91 prefix for Indian numbers)
@@ -1005,7 +1019,7 @@ export default function PropertyDetail() {
           <div className="d-sidebar">
             
             {/* Tour Request Card */}
-            <div className="cta-card" style={{ marginBottom: 24 }}>
+            <div id="tour-booking-card" className="cta-card" style={{ marginBottom: 24 }}>
               <h3 style={{ fontSize: 20, marginBottom: 8, fontWeight: 700 }}>Request a tour</h3>
               <p style={{ fontSize: 14, color: 'var(--ink-2)', marginBottom: 20 }}>
                 Get a private guided tour of the property as per your preferred schedule.
@@ -1040,14 +1054,15 @@ export default function PropertyDetail() {
                   </div>
 
                   {user ? (
-                    <div style={{ display: 'flex', gap: 12 }}>
-                      <button className="btn-primary" style={{ flex: 1, padding: '11px 0' }} onClick={handleVisitSubmit}>
-                        Schedule a Tour
-                      </button>
-                      <button className="btn btn-outline" style={{ flex: 1, padding: '11px 0' }} onClick={handleVisitSubmit}>
-                        Request Info
-                      </button>
-                    </div>
+                    <button 
+                      className="btn-primary" 
+                      style={{ width: '100%', padding: '12px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }} 
+                      onClick={handleVisitSubmit}
+                      disabled={submittingTour}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                      <span>{submittingTour ? 'Scheduling Tour...' : 'Schedule a Tour'}</span>
+                    </button>
                   ) : (
                     <button 
                       className="btn-primary" 
@@ -1197,8 +1212,12 @@ export default function PropertyDetail() {
                 className="btn-primary" 
                 style={{ flex: 1.2, padding: '10px 0', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: 13 }} 
                 onClick={() => {
-                  window.scrollTo({ top: 350, behavior: 'smooth' });
-                  handleVisitSubmit();
+                  const card = document.getElementById('tour-booking-card');
+                  if (card) {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  } else {
+                    window.scrollTo({ top: 400, behavior: 'smooth' });
+                  }
                 }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 6 }}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
