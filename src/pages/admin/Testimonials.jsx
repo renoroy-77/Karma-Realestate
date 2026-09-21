@@ -167,11 +167,6 @@ export default function Testimonials() {
         </button>
       </div>
 
-      {notice && (
-        <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#065f46', padding: '12px 18px', borderRadius: 12, marginBottom: 20, fontSize: 13.5 }}>
-          {notice}
-        </div>
-      )}
 
       {/* Grid of Testimonial Cards */}
       {loading ? (
