@@ -1,12 +1,12 @@
 import { useContext, useState, useRef, useEffect } from 'react';
-import { AppDataContext, LOCALITIES, formatIndianPrice } from '../../context/AppDataContext';
-import { Link, useNavigate } from 'react-router-dom';
+import { AppDataContext, formatIndianPrice } from '../../context/AppDataContext';
+import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
 import ClientsSectionDemo from '../../components/ui/testimonial-card';
 import api from '../../lib/api';
 
-function PropertyCard({ p, idx = 0 }) {
+function PropertyCard({ p }) {
   const { wishlist, toggleWishlist } = useContext(AppDataContext);
   const inWishlist = wishlist.includes(p.id);
   const rating = (4.5 + ((p.id % 5) * 0.1)).toFixed(1);
@@ -78,38 +78,39 @@ function CardCarousel({ children }) {
 
 export default function Home() {
   const { props } = useContext(AppDataContext);
-  const [purpose, setPurpose] = useState('');
-  const [loc, setLoc] = useState('');
   const [activeMarker, setActiveMarker] = useState(null);
-  const navigate = useNavigate();
 
   const [cmsSettings, setCmsSettings] = useState({
     hero_headline: 'Find Your Perfect Property in Kerala',
     hero_subheadline: 'Discover 1000+ verified properties across Kerala. Search by location, budget & lifestyle.',
-    hero_announcement: '🔥 Kannur Airport Corridor Commercial Lands Available'
+    hero_announcement: '🔥 Kannur Airport Corridor Commercial Lands Available',
+    popular_locations: [
+      { name: 'Payyanur', image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=200&q=80' },
+      { name: 'Thalassery', image: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=200&q=80' },
+      { name: 'Taliparamba', image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=200&q=80' },
+      { name: 'Iritty', image: 'https://images.unsplash.com/photo-1560448204-61dc36dc98c8?auto=format&fit=crop&w=200&q=80' },
+      { name: 'Mattannur', image: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=200&q=80' },
+      { name: 'Kannur City', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=200&q=80' },
+      { name: 'Payyambalam', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=200&q=80' }
+    ]
   });
 
   useEffect(() => {
     api.get('/settings')
       .then(res => {
         if (res.data.success && res.data.data) {
+          const d = res.data.data;
           setCmsSettings(prev => ({
             ...prev,
-            hero_headline: res.data.data.hero_headline || prev.hero_headline,
-            hero_subheadline: res.data.data.hero_subheadline || prev.hero_subheadline,
-            hero_announcement: res.data.data.hero_announcement !== undefined ? res.data.data.hero_announcement : prev.hero_announcement,
+            hero_headline: d.hero_headline || prev.hero_headline,
+            hero_subheadline: d.hero_subheadline || prev.hero_subheadline,
+            hero_announcement: d.hero_announcement !== undefined ? d.hero_announcement : prev.hero_announcement,
+            popular_locations: Array.isArray(d.popular_locations) && d.popular_locations.length > 0 ? d.popular_locations : prev.popular_locations
           }));
         }
       })
       .catch(() => {});
   }, []);
-
-  const handleSearch = () => {
-    const params = new URLSearchParams();
-    if (loc) params.set('loc', loc);
-    if (purpose) params.set('purpose', purpose);
-    navigate(`/results?${params.toString()}`);
-  };
   
   return (
     <>
@@ -163,34 +164,21 @@ export default function Home() {
             <div className="hero-locs">
               <h3 className="hl-title">Popular Locations</h3>
               <div className="hl-scroll">
-                <Link to="/results?loc=Payyanur" className="hl-card" style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=200&q=80" alt="Payyanur" />
-                  <span>Payyanur</span>
-                </Link>
-                <Link to="/results?loc=Thalassery" className="hl-card" style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <img src="https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=200&q=80" alt="Thalassery" />
-                  <span>Thalassery</span>
-                </Link>
-                <Link to="/results?loc=Taliparamba" className="hl-card" style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=200&q=80" alt="Taliparamba" />
-                  <span>Taliparamba</span>
-                </Link>
-                <Link to="/results?loc=Iritty" className="hl-card" style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <img src="https://images.unsplash.com/photo-1560448204-61dc36dc98c8?auto=format&fit=crop&w=200&q=80" alt="Iritty" />
-                  <span>Iritty</span>
-                </Link>
-                <Link to="/results?loc=Mattannur" className="hl-card" style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <img src="https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=200&q=80" alt="Mattannur" />
-                  <span>Mattannur</span>
-                </Link>
-                <Link to="/results?loc=Kannur City" className="hl-card" style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=200&q=80" alt="Kannur City" />
-                  <span>Kannur City</span>
-                </Link>
-                <Link to="/results?loc=Payyambalam" className="hl-card" style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=200&q=80" alt="Payyambalam" />
-                  <span>Payyambalam</span>
-                </Link>
+                {(cmsSettings.popular_locations || []).map((loc, idx) => (
+                  <Link
+                    key={idx}
+                    to={`/results?loc=${encodeURIComponent(loc.name)}`}
+                    className="hl-card"
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                  >
+                    <img
+                      src={loc.image || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=200&q=80'}
+                      alt={loc.name}
+                      loading="lazy"
+                    />
+                    <span>{loc.name}</span>
+                  </Link>
+                ))}
                 <Link to="/results" className="hl-next" style={{ display: 'grid', placeItems: 'center', textDecoration: 'none', color: 'inherit' }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
                 </Link>
@@ -210,7 +198,7 @@ export default function Home() {
         </div>
         <div className="hero-right">
           <div className="hr-map">
-            <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "AIzaSyC36wkei0AmiJoLtIwpeVEeeOo4I-st6qQ"}>
+            <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}>
               <Map
                 defaultZoom={11}
                 defaultCenter={{ lat: 11.874477, lng: 75.370182 }}

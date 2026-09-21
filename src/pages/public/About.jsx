@@ -145,7 +145,9 @@ export default function About() {
                   <label className="block text-sm font-bold text-gray-900 mb-2">Message</label>
                   <textarea required value={form.message} onChange={e => setForm({...form, message: e.target.value})} placeholder="How can we help you?" className="w-full px-5 py-4 rounded-xl border border-gray-200 focus:border-[#0a523b] focus:ring-2 focus:ring-[#0a523b]/20 outline-none transition-all bg-gray-50 focus:bg-white resize-y min-h-[140px]"></textarea>
                 </div>
-                <button type="submit" className="btn-primary w-full py-4 text-lg mt-2">Send Message</button>
+                <button type="submit" disabled={submitting} className="btn-primary w-full py-4 text-lg mt-2">
+                  {submitting ? 'Sending...' : 'Send Message'}
+                </button>
               </form>
             )}
           </div>

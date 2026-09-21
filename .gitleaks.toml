@@ -1,0 +1,8 @@
+[allowlist]
+description = "Global allowlist for build artifacts, dependencies, and environment files"
+paths = [
+  '''backend/vendor/.*''',
+  '''node_modules/.*''',
+  '''backend/database/.*\.sql''',
+  '''\.env.*'''
+]

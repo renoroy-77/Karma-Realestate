@@ -8,6 +8,7 @@ use App\Mail\SiteVisitNotification;
 use App\Models\Lead;
 use App\Models\SiteVisitRequest;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -66,5 +67,21 @@ class SiteVisitController extends Controller
                 'preferred_time_slot' => $visit->preferred_time_slot,
             ],
         ], 201);
+    }
+
+    public function store(BookSiteVisitRequest $request): JsonResponse
+    {
+        return $this->book($request);
+    }
+
+    public function myVisits(Request $request): JsonResponse
+    {
+        $lead = $request->attributes->get('verified_lead');
+        $visits = $lead ? $lead->siteVisits()->with('property')->get() : [];
+
+        return response()->json([
+            'success' => true,
+            'data' => $visits,
+        ]);
     }
 }

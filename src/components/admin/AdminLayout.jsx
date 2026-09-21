@@ -104,16 +104,16 @@ export default function AdminLayout() {
   const [title, sub] = TITLES[loc.pathname] || ['Dashboard', ''];
   const [mobileOpen, setMobileOpen] = useState(false);
   
+  // Close sidebar on route change automatically on mobile
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [loc.pathname]);
+
   // Auth guard: Check token
   const token = localStorage.getItem('admin_token');
   if (!token) {
     return <Navigate to="/admin/login" replace />;
   }
-
-  // Close sidebar on route change automatically on mobile
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [loc.pathname]);
 
   const handleAddPropertyClick = () => {
     if (loc.pathname === '/admin/properties') {

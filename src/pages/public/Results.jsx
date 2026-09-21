@@ -165,7 +165,6 @@ export default function Results() {
   const [dragging, setDragging] = useState(false);
   const [mapType, setMapType] = useState('roadmap');
   const startY = useRef(0);
-  const currentY = useRef(0);
 
   const handlePointerDown = (e) => {
     if (window.innerWidth > 1024) return; // Desktop ignore
@@ -325,7 +324,7 @@ export default function Results() {
           
 
 
-          <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "AIzaSyC36wkei0AmiJoLtIwpeVEeeOo4I-st6qQ"}>
+          <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}>
             <Map
               defaultZoom={12}
               defaultCenter={{ lat: 11.8545, lng: 75.3904 }}

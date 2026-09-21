@@ -255,6 +255,8 @@ class Property extends Model
             default => $query->orderBy('created_at', 'desc'), // newest / latest
         };
 
+        $query->orderByDesc('id'); // stable pagination ordering tiebreaker
+
         return $query;
     }
 }

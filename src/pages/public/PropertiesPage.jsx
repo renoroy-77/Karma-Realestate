@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { AppDataContext, formatIndianPrice } from '../../context/AppDataContext';
 import { Helmet } from 'react-helmet-async';
 
-function PropertyCard({ p, idx = 0 }) {
+function PropertyCard({ p }) {
   const { wishlist, toggleWishlist } = useContext(AppDataContext);
   const inWishlist = wishlist.includes(p.id);
   const rating = (4.5 + ((p.id % 5) * 0.1)).toFixed(1);
@@ -95,7 +95,6 @@ export default function PropertiesPage() {
 
   const villas = props.filter(p => p.type === 'House' || p.type === 'Villa');
   const plots = props.filter(p => p.type === 'Plot' || p.type === 'Land');
-  const commercial = props.filter(p => p.type === 'Commercial');
 
   return (
     <>

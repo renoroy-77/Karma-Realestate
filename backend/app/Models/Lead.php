@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Sanctum\HasApiTokens;
 
 /**
  * @property int $id
@@ -24,7 +25,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Lead extends Model
 {
-    use HasFactory;
+    use HasApiTokens, HasFactory;
 
     protected $table = 'leads';
 
@@ -64,6 +65,11 @@ class Lead extends Model
     public function siteVisits(): HasMany
     {
         return $this->hasMany(SiteVisitRequest::class)->orderBy('created_at', 'desc');
+    }
+
+    public function siteVisitRequests(): HasMany
+    {
+        return $this->siteVisits();
     }
 
     public function wishlists(): HasMany

@@ -104,6 +104,20 @@ class PropertyController extends Controller
         foreach ($properties as $p) {
             $cover = $p->coverPhoto ?? $p->media->firstWhere('media_type', 'photo');
 
+            // Deterministic offset per property (150m - 400m jitter) to prevent exact geolocation scraping
+            $saltLat = ((crc32($p->id.'_karma_lat') % 80) - 40) / 10000;
+            $saltLng = ((crc32($p->id.'_karma_lng') % 80) - 40) / 10000;
+
+            if (abs($saltLat) < 0.001) {
+                $saltLat = 0.0025;
+            }
+            if (abs($saltLng) < 0.001) {
+                $saltLng = 0.0025;
+            }
+
+            $fuzzedLat = round((float) $p->latitude + $saltLat, 4);
+            $fuzzedLng = round((float) $p->longitude + $saltLng, 4);
+
             $pins[] = [
                 'id' => $p->id,
                 'title' => $p->title,
@@ -113,8 +127,8 @@ class PropertyController extends Controller
                 'purpose' => $p->purpose,
                 'type' => $p->type,
                 'locality' => $p->locality,
-                'latitude' => (float) $p->latitude,
-                'longitude' => (float) $p->longitude,
+                'latitude' => $fuzzedLat,
+                'longitude' => $fuzzedLng,
                 'bedrooms' => $p->bedrooms,
                 'bathrooms' => $p->bathrooms,
                 'land_area' => $p->land_area ? (float) $p->land_area : null,

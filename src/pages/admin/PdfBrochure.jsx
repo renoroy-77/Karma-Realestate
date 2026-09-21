@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppDataContext, formatIndianPrice } from '../../context/AppDataContext';
 import { Helmet } from 'react-helmet-async';
@@ -7,7 +7,6 @@ export default function PdfBrochure() {
   const { id } = useParams();
   const { props } = useContext(AppDataContext);
   const navigate = useNavigate();
-  const [ready, setReady] = useState(false);
   
   const pId = parseInt(id);
   const p = props.find(x => x.id === pId);
@@ -16,7 +15,6 @@ export default function PdfBrochure() {
     if (p) {
       // Small delay to ensure images load before print dialog
       const timer = setTimeout(() => {
-        setReady(true);
         window.print();
       }, 500);
       return () => clearTimeout(timer);

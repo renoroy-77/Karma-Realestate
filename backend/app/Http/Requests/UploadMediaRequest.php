@@ -23,12 +23,12 @@ class UploadMediaRequest extends FormRequest
                     $ext = strtolower($value->getClientOriginalExtension() ?: '');
                     if ($mediaType === 'photo') {
                         $allowed = ['jpeg', 'jpg', 'png', 'webp'];
-                        if (!in_array($ext, $allowed)) {
+                        if (! in_array($ext, $allowed)) {
                             $fail('The photo must be a file of type: jpeg, jpg, png, webp.');
                         }
                     } elseif ($mediaType === 'video') {
                         $allowed = ['mp4', 'webm', 'mov', 'm4v', 'avi', 'mkv'];
-                        if (!in_array($ext, $allowed)) {
+                        if (! in_array($ext, $allowed)) {
                             $fail('The video must be a file of type: mp4, webm, mov, m4v.');
                         }
                     }

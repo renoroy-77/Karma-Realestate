@@ -242,7 +242,14 @@ class LeadController extends Controller
             $primary->status = $targetStatus;
             $primary->save();
 
-            $primary->load(['activities.adminUser', 'notes', 'propertyViews', 'siteVisits']);
+            $primary->load([
+                'activities.adminUser',
+                'notes.adminUser',
+                'propertyViews.property',
+                'siteVisits.property',
+                'wishlistProperties.coverPhoto',
+                'wishlistProperties.media',
+            ]);
 
             return response()->json([
                 'success' => true,

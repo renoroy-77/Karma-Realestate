@@ -6,6 +6,7 @@ use App\Models\PropertyMedia;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\ImageManager;
 use Intervention\Image\Laravel\Facades\Image;
 
 class MediaOptimizationService
@@ -30,7 +31,7 @@ class MediaOptimizationService
         Storage::disk('public')->put($originalRelPath, file_get_contents($file->getRealPath()));
 
         // 2. Generate responsive versions with fallback
-        $manager = app(\Intervention\Image\ImageManager::class);
+        $manager = app(ImageManager::class);
 
         try {
             $fullImage = $manager->decodePath($file->getRealPath());

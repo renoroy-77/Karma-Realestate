@@ -64,4 +64,9 @@ class WishlistController extends Controller
             'data' => PropertyListResource::collection($properties),
         ]);
     }
+
+    public function myWishlist(Request $request): JsonResponse
+    {
+        return $this->index($request);
+    }
 }

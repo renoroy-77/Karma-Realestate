@@ -20,11 +20,12 @@ class SiteSetting extends Model
     public static function get(string $key, mixed $default = null): mixed
     {
         $setting = static::where('key', $key)->first();
-        if (!$setting || $setting->value === null) {
+        if (! $setting || $setting->value === null) {
             return $default;
         }
 
         $decoded = json_decode($setting->value, true);
+
         return json_last_error() === JSON_ERROR_NONE ? $decoded : $setting->value;
     }
 

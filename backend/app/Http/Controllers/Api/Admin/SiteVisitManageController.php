@@ -20,7 +20,7 @@ class SiteVisitManageController extends Controller
         $query = SiteVisitRequest::query()
             ->with([
                 'property:id,title,locality,slug,price,purpose,type',
-                'lead:id,name,phone,email,locality'
+                'lead:id,name,phone,email,locality',
             ]);
 
         if ($status && $status !== 'all' && $status !== 'All') {

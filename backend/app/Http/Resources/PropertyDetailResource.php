@@ -65,7 +65,7 @@ class PropertyDetailResource extends JsonResource
             'latitude' => $isUnlocked ? ($this->latitude ? (float) $this->latitude : null) : null,
             'longitude' => $isUnlocked ? ($this->longitude ? (float) $this->longitude : null) : null,
             'virtual_tour_url' => $this->virtual_tour_url,
-            'video_url' => $videoMedia?->video_url ?? $this->virtual_tour_url,
+            'video_url' => $videoMedia ? $videoMedia->video_url : $this->virtual_tour_url,
             'brochure_url' => $this->brochure_url,
             'rera_number' => $this->rera_number,
             'land_classification' => $this->land_classification,

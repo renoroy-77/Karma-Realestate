@@ -11,13 +11,14 @@ use App\Http\Controllers\Api\Admin\PropertyMediaController as AdminPropertyMedia
 use App\Http\Controllers\Api\Admin\SiteSettingController as AdminSiteSettingController;
 use App\Http\Controllers\Api\Admin\SiteVisitManageController as AdminSiteVisitManageController;
 use App\Http\Controllers\Api\Admin\TestimonialManageController as AdminTestimonialController;
-use App\Http\Controllers\Api\Public\CompareController;
 use App\Http\Controllers\Api\Public\HomeController;
 use App\Http\Controllers\Api\Public\OtpController;
 use App\Http\Controllers\Api\Public\PropertyController;
 use App\Http\Controllers\Api\Public\SettingsController;
 use App\Http\Controllers\Api\Public\SiteVisitController;
+use App\Http\Controllers\Api\Public\TestimonialController;
 use App\Http\Controllers\Api\Public\WishlistController;
+use App\Http\Middleware\EnsureAdminUser;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,28 +33,28 @@ Route::post('/contact', [HomeController::class, 'contact']);
 
 // Interactive map pins for clustering & "Search this area"
 Route::get('/properties/map', [PropertyController::class, 'mapPins']);
+Route::get('/properties/map-pins', [PropertyController::class, 'mapPins']);
 
 // Property browsing & search (masked by default)
 Route::get('/properties', [PropertyController::class, 'index']);
 Route::get('/properties/{slug}', [PropertyController::class, 'show'])->middleware('lead.token:optional');
 Route::get('/properties/{slug}/similar', [PropertyController::class, 'similar']);
 
-// Comparison tool & global settings
-Route::post('/compare', [CompareController::class, 'compare']);
-Route::get('/settings', [SettingsController::class, 'index']);
-
-// Email OTP Verification
+// OTP verification & lead unlock
 Route::post('/otp/send', [OtpController::class, 'send']);
 Route::post('/otp/verify', [OtpController::class, 'verify']);
 
-// Site visit booking
-Route::post('/site-visit', [SiteVisitController::class, 'book']);
+// Lead Site Visit Booking & Wishlists (Requires Verified Lead Token)
+Route::post('/site-visits', [SiteVisitController::class, 'store'])->middleware('lead.token:required');
+Route::get('/site-visits/my', [SiteVisitController::class, 'myVisits'])->middleware('lead.token:required');
+Route::post('/wishlist', [WishlistController::class, 'toggle'])->middleware('lead.token:required');
+Route::get('/wishlist', [WishlistController::class, 'myWishlist'])->middleware('lead.token:required');
+Route::get('/wishlist/my', [WishlistController::class, 'myWishlist'])->middleware('lead.token:required');
 
-// Wishlist (Requires verified lead token)
-Route::middleware('lead.token:required')->group(function () {
-    Route::post('/wishlist/toggle', [WishlistController::class, 'toggle']);
-    Route::get('/wishlist', [WishlistController::class, 'index']);
-});
+// Comparison tool & global settings
+Route::post('/properties/compare', [PropertyController::class, 'compare']);
+Route::get('/settings', [SettingsController::class, 'index']);
+Route::get('/testimonials', [TestimonialController::class, 'index']);
 
 /*
 |--------------------------------------------------------------------------
@@ -64,10 +65,10 @@ Route::post('/admin/login', [AdminAuthController::class, 'login']);
 
 /*
 |--------------------------------------------------------------------------
-| Protected Admin Routes (Sanctum Token Required)
+| Protected Admin Routes (Sanctum Token & Admin Role Required)
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', EnsureAdminUser::class])->prefix('admin')->group(function () {
     // Auth & Profile
     Route::post('/logout', [AdminAuthController::class, 'logout']);
     Route::get('/me', [AdminAuthController::class, 'me']);
@@ -117,9 +118,13 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     // CMS & Hero Settings
     Route::get('/settings', [AdminSiteSettingController::class, 'index']);
     Route::match(['post', 'put'], '/settings', [AdminSiteSettingController::class, 'update']);
+    Route::post('/settings/upload-hero-bg', [AdminSiteSettingController::class, 'uploadHeroBg']);
+    Route::post('/settings/upload-location-image', [AdminSiteSettingController::class, 'uploadLocationImage']);
 
     // Testimonials Management
     Route::get('/testimonials', [AdminTestimonialController::class, 'index']);
+    Route::post('/testimonials/upload-avatar', [AdminTestimonialController::class, 'uploadAvatar']);
+    Route::post('/testimonials/upload-bg', [AdminTestimonialController::class, 'uploadBg']);
     Route::post('/testimonials', [AdminTestimonialController::class, 'store']);
     Route::get('/testimonials/{id}', [AdminTestimonialController::class, 'show']);
     Route::put('/testimonials/{id}', [AdminTestimonialController::class, 'update']);

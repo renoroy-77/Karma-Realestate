@@ -24,27 +24,34 @@ function statusPill(s) {
 export default function Dashboard() {
   const { props, leads } = useContext(AppDataContext);
   const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchStats = async () => {
+    try {
+      setRefreshing(true);
+      const res = await api.get('/admin/dashboard/stats');
+      if (res.data.success) {
+        setStats(res.data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching dashboard stats', err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    api.get('/admin/dashboard/stats')
-      .then(res => {
-        if (res.data.success) {
-          setStats(res.data.data);
-        }
-      })
-      .catch(err => {
-        console.error('Error fetching dashboard stats', err);
-      })
-      .finally(() => setLoading(false));
+    fetchStats();
   }, []);
 
   const overview = stats?.overview;
-  const activeListings = overview?.active_listings ?? props.filter(p => p.pub && p.status !== 'Sold').length;
-  const newLeadsCount = overview?.new_leads_badge ?? leads.filter(l => l.status === 'New').length;
-  const siteVisitsCount = overview?.site_visits_this_week ?? leads.filter(l => l.src === 'Site visit request').length;
-  const soldValue = props.filter(p => p.status === 'Sold').reduce((sum, p) => sum + (parseFloat(p.price) || 0), 0);
-  const soldCount = props.filter(p => p.status === 'Sold').length;
+  const activeListings = overview?.active_listings ?? props.filter(p => p.pub && (p.status || '').toLowerCase() !== 'sold').length;
+  const newLeadsCount = overview?.new_leads_badge ?? leads.filter(l => (l.status || '').toLowerCase() === 'new').length;
+  const siteVisitsCount = overview?.site_visits_this_week ?? overview?.pending_site_visits ?? leads.filter(l => l.src === 'Site visit request').length;
+  
+  const soldVolume = overview?.sold_volume ?? props.filter(p => (p.status || '').toLowerCase() === 'sold').reduce((sum, p) => sum + (parseFloat(p.price) || 0), 0);
+  const soldCount = overview?.sold_count ?? props.filter(p => (p.status || '').toLowerCase() === 'sold').length;
+  const portfolioVolume = overview?.total_portfolio_volume ?? props.reduce((sum, p) => sum + (parseFloat(p.price) || 0), 0);
 
   const displayLeads = stats?.recent_leads?.length ? stats.recent_leads : leads.slice(0, 5);
   const displayProps = stats?.most_viewed_properties?.length ? stats.most_viewed_properties : [...props].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5);
@@ -52,6 +59,33 @@ export default function Dashboard() {
 
   return (
     <div className="admin-theme">
+      {/* Quick Dashboard Action Bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div style={{ fontSize: 13, color: 'var(--ink-2)' }}>
+          Real-time overview of properties, leads and activities
+        </div>
+        <button
+          type="button"
+          onClick={fetchStats}
+          disabled={refreshing}
+          className="btn btn-ghost btn-sm"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5 }}
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }}
+          >
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+          </svg>
+          {refreshing ? 'Refreshing...' : 'Refresh Live Data'}
+        </button>
+      </div>
+
       {/* Metric Cards */}
       <div className="stat-row">
         <Link to="/admin/properties" className="stat">
@@ -92,10 +126,14 @@ export default function Dashboard() {
             <div className="s-ic" style={{ background: 'var(--green-soft)', color: 'var(--green)' }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M20 6 9 17l-5-5"/></svg>
             </div>
-            <span className="delta up">{soldCount} completed</span>
+            {soldCount > 0 ? (
+              <span className="delta up">{soldCount} completed</span>
+            ) : (
+              <span className="delta up">{activeListings} active</span>
+            )}
           </div>
-          <b>{soldValue ? formatIndianPrice(soldValue) : '₹0'}</b>
-          <span>Property volume</span>
+          <b>{soldCount > 0 ? formatIndianPrice(soldVolume) : formatIndianPrice(portfolioVolume)}</b>
+          <span>{soldCount > 0 ? 'Closed deals volume' : 'Portfolio volume'}</span>
         </Link>
       </div>
 
@@ -174,8 +212,14 @@ export default function Dashboard() {
                     <span>{l.phone} {l.loc ? `· ${l.loc}` : ''}</span>
                   </td>
                   <td style={{ fontSize: '12.5px', color: 'var(--ink-3)' }}>
-                    {l.props?.[0] || l.email || 'General search'}
-                    {l.props && l.props.length > 1 && <span style={{ color: 'var(--ink-2)' }}> +{l.props.length - 1}</span>}
+                    {l.interested_property ? (
+                      <div>
+                        <b style={{ color: 'var(--ink-1)', display: 'block', fontSize: 13 }}>{l.interested_property}</b>
+                        <span style={{ fontSize: 11.5, color: 'var(--ink-3)' }}>{l.email}</span>
+                      </div>
+                    ) : (
+                      l.props?.[0] || l.email || 'General search'
+                    )}
                   </td>
                   <td><span className={`pill ${l.src === 'Site visit request' ? 'amber' : 'gray'}`}>{l.src || 'Website'}</span></td>
                   <td>{statusPill(l.status)}</td>
@@ -211,11 +255,24 @@ export default function Dashboard() {
               {displayProps.length > 0 ? displayProps.map(p => (
                 <tr key={p.id}>
                   <td className="td-main">
-                    <b>{p.title}</b>
-                    <span>{p.locality || p.loc}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      {p.thumb_url && (
+                        <img
+                          src={p.thumb_url}
+                          alt={p.title}
+                          style={{ width: 40, height: 40, borderRadius: 6, objectFit: 'cover', border: '1px solid #e2e8f0', flexShrink: 0 }}
+                        />
+                      )}
+                      <div>
+                        <b>{p.title}</b>
+                        <span style={{ display: 'block', fontSize: 12, color: 'var(--ink-3)' }}>
+                          {p.locality || p.loc} {p.type ? `· ${p.type.charAt(0).toUpperCase() + p.type.slice(1)}` : ''}
+                        </span>
+                      </div>
+                    </div>
                   </td>
                   <td><b>{p.view_count ?? p.views ?? 0} views</b></td>
-                  <td>{p.priceFormatted || formatIndianPrice(p.price, p.purpose)}</td>
+                  <td><b>{p.priceFormatted || formatIndianPrice(p.price, p.purpose)}</b></td>
                   <td>{statusPill(p.status || 'Available')}</td>
                 </tr>
               )) : (

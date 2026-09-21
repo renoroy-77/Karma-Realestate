@@ -26,24 +26,30 @@ class VerifiedLeadToken
             try {
                 $payload = json_decode(Crypt::decryptString($token), true);
                 if (is_array($payload)) {
-                    if (! empty($payload['lead_id'])) {
-                        $lead = Lead::find($payload['lead_id']);
+                    // Check token expiration (30 days)
+                    $createdAt = $payload['created_at'] ?? null;
+                    $isExpired = $createdAt && (now()->timestamp - (int) $createdAt > 30 * 86400);
 
-                        // If lead was merged and deleted, resolve to primary lead
-                        if (! $lead) {
-                            $mergedPrimaryId = DB::table('lead_merges')
-                                ->where('duplicate_lead_id', $payload['lead_id'])
-                                ->value('primary_lead_id');
+                    if (! $isExpired) {
+                        if (! empty($payload['lead_id'])) {
+                            $lead = Lead::find($payload['lead_id']);
 
-                            if ($mergedPrimaryId) {
-                                $lead = Lead::find($mergedPrimaryId);
+                            // If lead was merged and deleted, resolve to primary lead
+                            if (! $lead) {
+                                $mergedPrimaryId = DB::table('lead_merges')
+                                    ->where('duplicate_lead_id', $payload['lead_id'])
+                                    ->value('primary_lead_id');
+
+                                if ($mergedPrimaryId) {
+                                    $lead = Lead::find($mergedPrimaryId);
+                                }
                             }
                         }
-                    }
 
-                    // Fallback to verified email if ID could not be resolved
-                    if (! $lead && ! empty($payload['email'])) {
-                        $lead = Lead::where('email', $payload['email'])->first();
+                        // Fallback to verified email if ID could not be resolved
+                        if (! $lead && ! empty($payload['email'])) {
+                            $lead = Lead::where('email', $payload['email'])->first();
+                        }
                     }
                 }
             } catch (\Exception $e) {

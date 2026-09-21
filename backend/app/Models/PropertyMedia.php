@@ -8,6 +8,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * @property int $id
+ * @property int $property_id
+ * @property string $media_type
+ * @property string|null $original_path
+ * @property string|null $thumb_path
+ * @property string|null $medium_path
+ * @property string|null $full_path
+ * @property string|null $video_url
+ * @property bool $is_cover
+ * @property int $sort_order
+ */
 class PropertyMedia extends Model
 {
     use HasFactory;
@@ -30,7 +42,6 @@ class PropertyMedia extends Model
         'thumb_url',
         'medium_url',
         'full_url',
-        'video_url',
     ];
 
     protected function casts(): array
@@ -77,6 +88,7 @@ class PropertyMedia extends Model
                 if ($this->original_path && $this->media_type === 'video') {
                     return str_starts_with($this->original_path, 'http') ? $this->original_path : Storage::disk('public')->url($this->original_path);
                 }
+
                 return null;
             },
         );

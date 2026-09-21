@@ -17,6 +17,7 @@ class Testimonial extends Model
         'content',
         'rating',
         'photo_url',
+        'bg_image',
         'is_active',
     ];
 

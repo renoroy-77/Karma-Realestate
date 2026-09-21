@@ -52,7 +52,7 @@ class PropertyMediaController extends Controller
             // Real Video File Upload into storage
             $videoFile = $request->file('file');
             $ext = strtolower($videoFile->getClientOriginalExtension() ?: 'mp4');
-            $filename = Str::uuid()->toString() . '.' . $ext;
+            $filename = Str::uuid()->toString().'.'.$ext;
             $relFolder = "properties/{$property->id}/videos";
             Storage::disk('public')->makeDirectory($relFolder);
             $relPath = "{$relFolder}/{$filename}";
@@ -101,6 +101,18 @@ class PropertyMediaController extends Controller
         ]);
 
         $property = Property::findOrFail($id);
+
+        $itemIds = collect($request->input('items'))->pluck('id')->all();
+        $unownedCount = PropertyMedia::whereIn('id', $itemIds)
+            ->where('property_id', '!=', $property->id)
+            ->count();
+
+        if ($unownedCount > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot reorder media items belonging to a different property.',
+            ], 422);
+        }
 
         foreach ($request->input('items') as $item) {
             PropertyMedia::where('property_id', $property->id)
@@ -159,7 +171,7 @@ class PropertyMediaController extends Controller
 
         $property = Property::findOrFail($id);
         $file = $request->file('file');
-        $filename = Str::uuid()->toString() . '.pdf';
+        $filename = Str::uuid()->toString().'.pdf';
         $relFolder = "properties/{$property->id}/brochures";
         Storage::disk('public')->makeDirectory($relFolder);
         $relPath = "{$relFolder}/{$filename}";

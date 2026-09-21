@@ -1,6 +1,6 @@
 import { useContext, useState, useMemo, useEffect, useRef } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { AppDataContext, LOCALITIES, LOCALITY_COORDS, formatIndianPrice } from '../../context/AppDataContext';
+import { useSearchParams } from 'react-router-dom';
+import { AppDataContext, LOCALITY_COORDS, formatIndianPrice } from '../../context/AppDataContext';
 
 const AMENITIES_LIST = [
   'Car Parking', '24/7 Security', 'Power Backup', 'Lift / Elevator', 
@@ -48,19 +48,16 @@ export default function Properties() {
     updateProperty,
     deleteProperty,
     deletePropertyMedia,
-    uploadPropertyBrochure,
     deletePropertyBrochure,
     updatePropertyStatus,
     togglePropertyPublish
   } = useContext(AppDataContext);
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
 
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState('add');
   const [currentStep, setCurrentStep] = useState(1);
-  const [showManualCoords, setShowManualCoords] = useState(false);
   const [formData, setFormData] = useState({});
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [filePreviews, setFilePreviews] = useState([]);
@@ -89,7 +86,7 @@ export default function Properties() {
     const handleOpenAdd = () => openModal('add');
     window.addEventListener('open-add-property-modal', handleOpenAdd);
     return () => window.removeEventListener('open-add-property-modal', handleOpenAdd);
-  }, [searchParams]);
+  }, [searchParams, setSearchParams]);
 
   const filteredProps = useMemo(() => {
     if (!searchQuery) return props;
@@ -145,7 +142,6 @@ export default function Properties() {
   const openModal = (mode, p = null) => {
     setModalMode(mode);
     setCurrentStep(1);
-    setShowManualCoords(false);
     setSelectedFiles([]);
     setFilePreviews([]);
     setSelectedBrochureFile(null);
@@ -649,11 +645,6 @@ export default function Properties() {
           ? Number(formData.lng)
           : (LOCALITY_COORDS[formData.loc]?.lng || 75.3704);
         const liveMapUrl = `https://maps.google.com/maps?q=${activeLat},${activeLng}&hl=en&z=15&output=embed`;
-
-        const allMediaPreviews = [
-          ...(filePreviews || []),
-          ...(formData.imgs || [])
-        ];
 
         return (
           <div className="overlay" onClick={(e) => e.target.className.includes('overlay') && !saving && setShowModal(false)} style={{ zIndex: 100 }}>

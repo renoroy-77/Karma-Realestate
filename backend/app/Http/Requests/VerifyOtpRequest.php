@@ -11,6 +11,20 @@ class VerifyOtpRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('email')) {
+            $this->merge([
+                'email' => strtolower(trim((string) $this->input('email'))),
+            ]);
+        }
+        if ($this->has('otp')) {
+            $this->merge([
+                'otp' => trim((string) $this->input('otp')),
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         return [
