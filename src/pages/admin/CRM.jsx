@@ -90,15 +90,24 @@ export default function CRM() {
     }
   };
 
-  const handleDeleteVisit = async (visitId) => {
-    if (!window.confirm('Delete this tour request?')) return;
-    try {
-      await api.delete(`/admin/site-visits/${visitId}`);
-      setSiteVisits(prev => prev.filter(v => v.id !== visitId));
-      toast.success('Tour request removed.');
-    } catch (err) {
-      toast.error('Failed to delete tour request');
-    }
+  const handleDeleteVisit = (visitId) => {
+    toast('Delete this tour request?', {
+      description: 'This booking request will be permanently removed.',
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          try {
+            await api.delete(`/admin/site-visits/${visitId}`);
+            setSiteVisits(prev => prev.filter(v => v.id !== visitId));
+            toast.success('Tour request removed.');
+          } catch (err) {
+            toast.error('Failed to delete tour request');
+          }
+        }
+      },
+      cancel: { label: 'Cancel' },
+      duration: 6000
+    });
   };
 
   let list = leads.filter(l => filter === 'All' || l.status === filter);
@@ -512,145 +521,406 @@ export default function CRM() {
         </>
       )}
 
-      {/* Lead Detail Drawer */}
+      {/* Lead Detail Drawer - Enhanced Luxury CRM Design */}
       {selectedLead && (
         <div className="drawer-backdrop" onClick={() => setSelectedLead(null)}>
-          <div className="drawer" onClick={e => e.stopPropagation()}>
-            <div className="drawer-hd">
-              <h3>Lead Details</h3>
-              <button className="icon-btn" onClick={() => setSelectedLead(null)}>✕</button>
+          <div className="drawer" style={{ maxWidth: 480, display: 'flex', flexDirection: 'column', background: '#f8fafc' }} onClick={e => e.stopPropagation()}>
+            {/* Drawer Header */}
+            <div className="drawer-hd" style={{ background: '#ffffff', borderBottom: '1px solid #e2e8f0', padding: '18px 24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ 
+                  background: '#f1f5f9', 
+                  color: '#475569', 
+                  fontSize: 12, 
+                  fontWeight: 700, 
+                  padding: '3px 8px', 
+                  borderRadius: 6,
+                  fontFamily: 'monospace'
+                }}>
+                  LEAD #{selectedLead.id}
+                </span>
+                <h3 style={{ fontSize: 17, fontWeight: 700, margin: 0, color: '#0f172a' }}>Lead Profile</h3>
+              </div>
+              <button 
+                className="icon-btn" 
+                onClick={() => setSelectedLead(null)}
+                style={{ width: 32, height: 32, borderRadius: 8, display: 'grid', placeItems: 'center', background: '#f1f5f9', border: 'none', cursor: 'pointer' }}
+                aria-label="Close drawer"
+              >
+                ✕
+              </button>
             </div>
-            <div className="drawer-bd">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
-                <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--blue)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 20, fontWeight: 700 }}>
-                  {selectedLead.name?.charAt(0) || 'L'}
-                </div>
-                <div>
-                  <h2 style={{ fontSize: 20, marginBottom: 4 }}>{selectedLead.name}</h2>
-                  <div style={{ color: 'var(--ink-2)', fontSize: 13.5 }}>
-                    {selectedLead.phone} {selectedLead.email ? `· ${selectedLead.email}` : ''}
+
+            {/* Drawer Body */}
+            <div className="drawer-bd" style={{ flex: 1, padding: '20px 24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+              
+              {/* Executive Lead Profile Card */}
+              <div style={{ 
+                background: '#ffffff', 
+                borderRadius: 16, 
+                padding: '20px', 
+                border: '1px solid #e2e8f0', 
+                boxShadow: '0 2px 10px rgba(0,0,0,0.03)' 
+              }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+                  <div style={{ 
+                    width: 58, 
+                    height: 58, 
+                    borderRadius: 16, 
+                    background: 'linear-gradient(135deg, #18181B 0%, #C5A059 100%)', 
+                    color: '#ffffff', 
+                    display: 'grid', 
+                    placeItems: 'center', 
+                    fontSize: 22, 
+                    fontWeight: 800,
+                    flexShrink: 0,
+                    boxShadow: '0 4px 14px rgba(197, 160, 89, 0.25)'
+                  }}>
+                    {selectedLead.name?.charAt(0)?.toUpperCase() || 'L'}
                   </div>
-                  {selectedLead.loc && <div style={{ color: 'var(--ink-3)', fontSize: 12.5, marginTop: 2 }}>Location: {selectedLead.loc}</div>}
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <h2 style={{ fontSize: 19, fontWeight: 800, margin: 0, color: '#0f172a' }}>
+                        {selectedLead.name}
+                      </h2>
+                      <span style={{ 
+                        fontSize: 11, 
+                        fontWeight: 700, 
+                        background: '#ecfdf5', 
+                        color: '#059669', 
+                        padding: '2px 8px', 
+                        borderRadius: 99, 
+                        border: '1px solid #a7f3d0',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 3
+                      }}>
+                        ✓ Verified Lead
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12 }}>
+                      {/* Phone with copy */}
+                      {selectedLead.phone && (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc', padding: '6px 12px', borderRadius: 8, border: '1px solid #edf2f7' }}>
+                          <a 
+                            href={`tel:${selectedLead.phone}`} 
+                            style={{ color: '#0f172a', fontWeight: 600, fontSize: 13, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}
+                          >
+                            <span>📞</span> {selectedLead.phone}
+                          </a>
+                          <button 
+                            onClick={() => {
+                              navigator.clipboard.writeText(selectedLead.phone);
+                              toast.success('Phone copied to clipboard');
+                            }}
+                            style={{ background: 'none', border: 'none', color: '#64748b', fontSize: 11.5, cursor: 'pointer', fontWeight: 600 }}
+                          >
+                            Copy
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Email with copy */}
+                      {selectedLead.email && (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc', padding: '6px 12px', borderRadius: 8, border: '1px solid #edf2f7' }}>
+                          <a 
+                            href={`mailto:${selectedLead.email}`} 
+                            style={{ color: '#0f172a', fontWeight: 500, fontSize: 12.5, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          >
+                            <span>✉️</span> {selectedLead.email}
+                          </a>
+                          <button 
+                            onClick={() => {
+                              navigator.clipboard.writeText(selectedLead.email);
+                              toast.success('Email copied to clipboard');
+                            }}
+                            style={{ background: 'none', border: 'none', color: '#64748b', fontSize: 11.5, cursor: 'pointer', fontWeight: 600 }}
+                          >
+                            Copy
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12, fontSize: 12, color: '#64748b' }}>
+                      {selectedLead.loc && (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#f1f5f9', padding: '3px 8px', borderRadius: 6 }}>
+                          📍 {selectedLead.loc}
+                        </span>
+                      )}
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#f1f5f9', padding: '3px 8px', borderRadius: 6 }}>
+                        🌐 Source: {selectedLead.src || 'Direct Web'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="fld">
-                <label>Pipeline Status</label>
-                <select
-                  value={selectedLead.status}
-                  onChange={(e) => handleStatusChange(e.target.value)}
-                  style={{ maxWidth: 220, fontWeight: 600 }}
-                >
-                  {F.slice(1).map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
+              {/* Pipeline Stage Management */}
+              <div style={{ background: '#ffffff', borderRadius: 16, padding: '18px 20px', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <label style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Pipeline Stage
+                  </label>
+                  <span style={{ fontSize: 11.5, color: '#64748b' }}>First seen: {selectedLead.first || 'Recently'}</span>
+                </div>
+
+                {/* Stage Pills Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                  {F.slice(1).map(stage => {
+                    const isCurrent = selectedLead.status === stage;
+                    return (
+                      <button
+                        key={stage}
+                        type="button"
+                        onClick={() => handleStatusChange(stage)}
+                        style={{
+                          padding: '8px 10px',
+                          borderRadius: 8,
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                          transition: 'all 0.15s ease',
+                          border: isCurrent ? '2px solid #C5A059' : '1px solid #e2e8f0',
+                          background: isCurrent ? 'linear-gradient(135deg, #18181B 0%, #27272A 100%)' : '#f8fafc',
+                          color: isCurrent ? '#C5A059' : '#475569',
+                          boxShadow: isCurrent ? '0 2px 8px rgba(197, 160, 89, 0.2)' : 'none'
+                        }}
+                      >
+                        {stage}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
-              <div style={{ marginTop: 24 }}>
-                <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, borderBottom: '1px solid var(--line)', paddingBottom: 8 }}>
-                  Properties of Interest
-                </h4>
+              {/* Properties of Interest Section */}
+              <div style={{ background: '#ffffff', borderRadius: 16, padding: '18px 20px', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em', margin: 0 }}>
+                    Properties of Interest
+                  </h4>
+                  <span style={{ fontSize: 11.5, background: '#f1f5f9', padding: '2px 8px', borderRadius: 99, fontWeight: 700, color: '#64748b' }}>
+                    {selectedLead.props?.length || 0}
+                  </span>
+                </div>
+
                 {selectedLead.props && selectedLead.props.length > 0 ? (
-                  <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {selectedLead.props.map((p, i) => (
-                      <li key={i} style={{ padding: '10px 0', borderBottom: '1px solid var(--line)', fontSize: 13.5, color: 'var(--blue)', fontWeight: 500 }}>
-                        {p}
-                      </li>
+                      <div 
+                        key={i} 
+                        style={{ 
+                          padding: '10px 14px', 
+                          borderRadius: 10, 
+                          background: '#f8fafc', 
+                          border: '1px solid #e2e8f0', 
+                          fontSize: 13, 
+                          color: '#0f172a', 
+                          fontWeight: 600,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 10
+                        }}
+                      >
+                        <span style={{ fontSize: 16 }}>🏡</span>
+                        <span style={{ flex: 1 }}>{p}</span>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 ) : (
-                  <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>No specific properties attached to this lead.</p>
+                  <div style={{ textAlign: 'center', padding: '16px 12px', background: '#f8fafc', borderRadius: 10, border: '1px dashed #cbd5e1' }}>
+                    <div style={{ fontSize: 18, marginBottom: 4 }}>🏠</div>
+                    <p style={{ fontSize: 12.5, color: '#64748b', margin: 0 }}>
+                      No specific properties attached to this lead yet.
+                    </p>
+                  </div>
                 )}
               </div>
 
-              {/* Add Note / Activity Form */}
-              <div style={{ marginTop: 24 }}>
-                <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, borderBottom: '1px solid var(--line)', paddingBottom: 8 }}>
+              {/* Team Notes & Interaction Logger */}
+              <div style={{ background: '#ffffff', borderRadius: 16, padding: '18px 20px', border: '1px solid #e2e8f0' }}>
+                <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 12, margin: '0 0 12px 0' }}>
                   Add Team Note
                 </h4>
                 <form onSubmit={handleAddNote} style={{ display: 'flex', gap: 8 }}>
                   <input
                     value={newNote}
                     onChange={e => setNewNote(e.target.value)}
-                    placeholder="Log a call, visit notes, budget..."
-                    style={{ flex: 1, padding: '8px 12px', fontSize: 13 }}
+                    placeholder="Log call summary, budget, visit notes..."
+                    style={{ 
+                      flex: 1, 
+                      padding: '10px 14px', 
+                      borderRadius: 10, 
+                      border: '1px solid #cbd5e1', 
+                      fontSize: 13,
+                      outline: 'none',
+                      background: '#f8fafc'
+                    }}
                   />
-                  <button type="submit" className="btn btn-blue btn-sm" disabled={addingNote || !newNote.trim()}>
+                  <button 
+                    type="submit" 
+                    disabled={addingNote || !newNote.trim()}
+                    style={{
+                      background: 'linear-gradient(135deg, #18181B 0%, #27272A 100%)',
+                      color: '#C5A059',
+                      border: '1px solid #C5A059',
+                      borderRadius: 10,
+                      padding: '10px 16px',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: addingNote || !newNote.trim() ? 'not-allowed' : 'pointer',
+                      opacity: addingNote || !newNote.trim() ? 0.6 : 1,
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
                     {addingNote ? 'Saving...' : 'Add Note'}
                   </button>
                 </form>
               </div>
 
-              <div style={{ marginTop: 24 }}>
-                <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, borderBottom: '1px solid var(--line)', paddingBottom: 8 }}>
-                  Activity & Timeline
+              {/* Activity & Timeline Feed */}
+              <div style={{ background: '#ffffff', borderRadius: 16, padding: '18px 20px', border: '1px solid #e2e8f0' }}>
+                <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 14, margin: '0 0 14px 0' }}>
+                  Activity Timeline
                 </h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {selectedLead.log && selectedLead.log.length > 0 ? (
                     selectedLead.log.map((item, idx) => (
-                      <div key={idx} style={{ display: 'flex', gap: 12 }}>
-                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--bg-soft)', display: 'grid', placeItems: 'center', fontSize: 12, flexShrink: 0 }}>
+                      <div key={idx} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                        <div style={{ 
+                          width: 32, 
+                          height: 32, 
+                          borderRadius: 8, 
+                          background: item.t.startsWith('Note:') ? '#fef3c7' : '#ecfdf5', 
+                          display: 'grid', 
+                          placeItems: 'center', 
+                          fontSize: 14, 
+                          flexShrink: 0 
+                        }}>
                           {item.t.startsWith('Note:') ? '📝' : '🎯'}
                         </div>
-                        <div>
-                          <div style={{ fontSize: 13.5, fontWeight: 600 }}>{item.t}</div>
-                          <div style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 2 }}>{item.w}</div>
+                        <div style={{ flex: 1, background: '#f8fafc', padding: '10px 12px', borderRadius: 10, border: '1px solid #edf2f7' }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>{item.t}</div>
+                          <div style={{ fontSize: 11.5, color: '#94a3b8', marginTop: 4 }}>{item.w}</div>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div style={{ display: 'flex', gap: 12 }}>
-                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--bg-soft)', display: 'grid', placeItems: 'center', fontSize: 12 }}>🎯</div>
-                      <div>
-                        <div style={{ fontSize: 13.5, fontWeight: 600 }}>Lead Captured</div>
-                        <div style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>Via {selectedLead.src}</div>
-                        <div style={{ fontSize: 11.5, color: 'var(--ink-3)', marginTop: 2 }}>{selectedLead.first}</div>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: '#ecfdf5', display: 'grid', placeItems: 'center', fontSize: 14, flexShrink: 0 }}>
+                        🎯
+                      </div>
+                      <div style={{ flex: 1, background: '#f8fafc', padding: '10px 12px', borderRadius: 10, border: '1px solid #edf2f7' }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>Lead Captured</div>
+                        <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Captured via {selectedLead.src || 'Web OTP Verification'}</div>
+                        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>{selectedLead.first || 'Recently'}</div>
                       </div>
                     </div>
                   )}
                 </div>
               </div>
+
             </div>
-            <div className="drawer-ft" style={{ flexDirection: 'column', gap: 10 }}>
-              <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-                <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => setSelectedLead(null)}>Close</button>
+
+            {/* Drawer Actions Footer */}
+            <div className="drawer-ft" style={{ background: '#ffffff', borderTop: '1px solid #e2e8f0', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {selectedLead.phone && (() => {
+                const cleanPhone = (selectedLead.phone || '').replace(/[^0-9]/g, '');
+                const waNum = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+                const callNum = cleanPhone.length === 10 ? `+91${cleanPhone}` : `+${cleanPhone}`;
+                return (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <a
+                      href={`https://wa.me/${waNum}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ 
+                        background: '#25D366', 
+                        color: '#ffffff', 
+                        fontWeight: 700, 
+                        fontSize: 14, 
+                        padding: '12px 16px', 
+                        borderRadius: 12, 
+                        textAlign: 'center', 
+                        textDecoration: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        boxShadow: '0 4px 12px rgba(37, 211, 102, 0.25)'
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.01 2.01a10 10 0 0 0-8.52 15.27L2 22l4.87-1.46a10 10 0 1 0 5.14-18.53zm0 18A8 8 0 0 1 7.2 18.9l-.35-.2-3.6 1.08 1.1-3.5-.2-.36A8 8 0 1 1 12.01 20zm4.27-5.83c-.23-.12-1.38-.68-1.59-.76-.22-.08-.38-.12-.54.12s-.6 .76-.74.92c-.14.16-.27.18-.5.06a6.56 6.56 0 0 1-1.92-1.18 7.2 7.2 0 0 1-1.33-1.66c-.14-.24-.01-.37.1-.49.1-.11.23-.27.35-.4a1.6 1.6 0 0 0 .15-.25c.08-.16.04-.3-.02-.42s-.54-1.3-.74-1.78c-.2-.47-.4-.4-.54-.41-.14 0-.3-.01-.46-.01a.89.89 0 0 0-.64.3c-.22.24-.85.83-.85 2.02s.87 2.34.99 2.5c.12.16 1.7 2.6 4.12 3.64 1.48.64 2.15.7 2.94.59.56-.08 1.38-.56 1.57-1.1.2-.54.2-.1.14-.11z"/></svg>
+                      WhatsApp
+                    </a>
+                    <a
+                      href={`tel:${callNum}`}
+                      style={{ 
+                        background: '#0071E3', 
+                        color: '#ffffff', 
+                        fontWeight: 700, 
+                        fontSize: 14, 
+                        padding: '12px 16px', 
+                        borderRadius: 12, 
+                        textAlign: 'center', 
+                        textDecoration: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        boxShadow: '0 4px 12px rgba(0, 113, 227, 0.25)'
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                      Call Lead
+                    </a>
+                  </div>
+                );
+              })()}
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <button
-                  className="btn btn-outline"
-                  style={{ flex: 1 }}
+                  type="button"
                   onClick={() => {
                     setPrimaryLeadId(selectedLead.id);
                     setDuplicateLeadId('');
                     setMergeError('');
                     setShowMergeModal(true);
                   }}
+                  style={{
+                    background: '#f8fafc',
+                    color: '#475569',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: 10,
+                    padding: '9px 14px',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
                 >
-                  Merge Lead...
+                  Merge Duplicate...
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setSelectedLead(null)}
+                  style={{
+                    background: '#f8fafc',
+                    color: '#475569',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: 10,
+                    padding: '9px 14px',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Close
                 </button>
               </div>
-              {selectedLead.phone && (() => {
-                const cleanPhone = (selectedLead.phone || '').replace(/[^0-9]/g, '');
-                const waNum = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
-                const callNum = cleanPhone.length === 10 ? `+91${cleanPhone}` : `+${cleanPhone}`;
-                return (
-                  <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-                    <a
-                      href={`https://wa.me/${waNum}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn btn-primary"
-                      style={{ flex: 1, background: '#25D366', borderColor: '#25D366', textAlign: 'center', textDecoration: 'none' }}
-                    >
-                      WhatsApp
-                    </a>
-                    <a
-                      href={`tel:${callNum}`}
-                      className="btn btn-blue"
-                      style={{ flex: 1, textAlign: 'center', textDecoration: 'none' }}
-                    >
-                      Call
-                    </a>
-                  </div>
-                );
-              })()}
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
 import api from '../../lib/api';
 import { AppDataContext } from '../../context/AppDataContext';
+import KarmaLogo from '../../components/ui/KarmaLogo';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('admin@karmarealestate.in');
@@ -52,16 +53,7 @@ export default function AdminLogin() {
           <div className="login-left-content">
             {/* Top Brand */}
             <div className="login-left-brand">
-              <div className="brand-logo-icon">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="m3 21 9-18 9 18" />
-                  <path d="M7 13h10" />
-                </svg>
-              </div>
-              <div className="brand-logo-text">
-                <div className="brand-title">KARMA</div>
-                <div className="brand-sub">REAL ESTATE</div>
-              </div>
+              <KarmaLogo height={52} />
             </div>
 
             {/* Center Copy & Feature Cards */}
@@ -144,15 +136,8 @@ export default function AdminLogin() {
           <div className="login-card-wrap">
             <div className="login-card">
               {/* Card Header Logo */}
-              <div className="card-brand-header">
-                <div className="card-logo-icon">
-                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m3 21 9-18 9 18" />
-                    <path d="M7 13h10" />
-                  </svg>
-                </div>
-                <div className="card-brand-name">KARMA</div>
-                <div className="card-brand-sub">REAL ESTATE</div>
+              <div className="card-brand-header" style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
+                <KarmaLogo height={56} />
               </div>
 
               <h2 className="card-title">Sign in to Admin Panel</h2>
@@ -220,7 +205,7 @@ export default function AdminLogin() {
                   <button
                     type="button"
                     className="forgot-link"
-                    onClick={() => alert('Please contact the super admin at support@karmarealestate.in to reset credentials.')}
+                    onClick={() => toast.info('Please contact the super admin at support@karmarealestate.in to reset credentials.')}
                   >
                     Forgot password?
                   </button>

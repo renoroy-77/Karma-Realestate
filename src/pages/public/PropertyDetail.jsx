@@ -1093,7 +1093,7 @@ export default function PropertyDetail() {
               </p>
               
               <div style={{ display: 'flex', gap: 16, marginBottom: 20, alignItems: 'center' }}>
-                <div style={{ width: 56, height: 56, borderRadius: 14, background: 'linear-gradient(135deg, #0a523b, #10b981)', color: '#fff', flexShrink: 0, display: 'grid', placeItems: 'center', fontSize: 22, fontWeight: 800 }}>
+                <div style={{ width: 56, height: 56, borderRadius: 14, background: 'linear-gradient(135deg, #121316, #C5A059)', color: '#fff', flexShrink: 0, display: 'grid', placeItems: 'center', fontSize: 22, fontWeight: 800 }}>
                   {(p.ownerName || 'K').charAt(0).toUpperCase()}
                 </div>
                 <div>

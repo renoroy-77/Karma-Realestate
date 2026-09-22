@@ -15,13 +15,16 @@ export const LOCALITIES = [
 
 export const LOCALITY_COORDS = {
   'Kannur City': { lat: 11.8745, lng: 75.3704 },
+  'Kannur': { lat: 11.8745, lng: 75.3704 },
   'Thottada': { lat: 11.8239, lng: 75.4190 },
   'Payyambalam': { lat: 11.8680, lng: 75.3520 },
+  'Payyambalam Beach': { lat: 11.8680, lng: 75.3520 },
   'Talap': { lat: 11.8821, lng: 75.3620 },
   'South Bazar': { lat: 11.8700, lng: 75.3710 },
   'Pallikkunnu': { lat: 11.8910, lng: 75.3650 },
   'Chalad': { lat: 11.8890, lng: 75.3560 },
   'Mele Chovva': { lat: 11.8760, lng: 75.4020 },
+  'Chovva': { lat: 11.8760, lng: 75.4020 },
   'Mattannur': { lat: 11.9186, lng: 75.5727 },
   'Thalassery': { lat: 11.7480, lng: 75.4894 },
   'Payyanur': { lat: 12.1030, lng: 75.2030 },
@@ -36,7 +39,12 @@ export const LOCALITY_COORDS = {
   'Anjarakandy': { lat: 11.8580, lng: 75.5020 },
   'Chakkarakkal': { lat: 11.8730, lng: 75.4620 },
   'Kuthuparamba': { lat: 11.8270, lng: 75.5680 },
-  'Cherukunnu': { lat: 11.9840, lng: 75.3210 }
+  'Cherukunnu': { lat: 11.9840, lng: 75.3210 },
+  'Kochi': { lat: 9.9312, lng: 76.2673 },
+  'Kozhikode': { lat: 11.2588, lng: 75.7804 },
+  'Wayanad': { lat: 11.6854, lng: 76.1320 },
+  'allepy': { lat: 9.4981, lng: 76.3388 },
+  'Alappuzha': { lat: 9.4981, lng: 76.3388 }
 };
 
 export const AppDataContext = createContext();

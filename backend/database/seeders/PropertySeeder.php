@@ -382,9 +382,173 @@ class PropertySeeder extends Seeder
                 'owner_notes' => 'Prominent heritage family. Requires NDA before physical inspection.',
                 'remark' => 'High profile seller. Strict non-disclosure requested before in-person site visit.',
             ],
+            [
+                'title' => 'Hillside Spices & Plantation Villa in Iritty',
+                'slug' => 'hillside-spices-plantation-villa-iritty',
+                'purpose' => 'sale',
+                'type' => 'house',
+                'price' => 21500000.00,
+                'price_basis' => 'total',
+                'negotiable' => true,
+                'land_area' => 85.0,
+                'land_area_unit' => 'cent',
+                'building_area_sqft' => 3600.00,
+                'bedrooms' => 4,
+                'bathrooms' => 4,
+                'amenities' => ['Rubber & Pepper Plantation', 'Mountain Stream Access', 'Private Well Water', 'Solar Power System', 'Fruit Trees Orchard'],
+                'pros' => ['Lush scenic hill country climate in Iritty', 'High yield active rubber and black pepper harvest', 'Quiet retreat away from coastal humidity'],
+                'cons' => ['25 km drive from Kannur city center'],
+                'description' => 'Expansive 85-cent plantation estate nestled in the scenic green hills of Iritty. Features a contemporary 4BHK Kerala-style villa with mountain stream views.',
+                'locality' => 'Iritty',
+                'district' => 'Kannur',
+                'address_line' => 'Payyavoor Road, Near Hill Highway, Iritty 670703',
+                'latitude' => 11.9800,
+                'longitude' => 75.6600,
+                'virtual_tour_url' => null,
+                'rera_number' => null,
+                'land_classification' => 'Agricultural / Plantation Land',
+                'status' => 'available',
+                'is_published' => true,
+                'is_featured' => true,
+                'view_count' => 380,
+                'meta_title' => '85 Cents Plantation Villa for Sale in Iritty, Kannur | KARMA',
+                'meta_description' => 'Scenic 4BHK hill country villa on 85 cents in Iritty with rubber and pepper plantation.',
+                'owner_name' => 'Joseph Varghese',
+                'owner_phone' => '+91 94473 11445',
+                'owner_email' => 'joseph.iritty@gmail.com',
+                'owner_notes' => 'Planter family in Iritty.',
+                'remark' => 'Clean title deeds. Yearly yield from rubber and spices covers maintenance.',
+            ],
+            [
+                'title' => 'Marine Drive Waterfront Luxury Apartment in Kochi',
+                'slug' => 'marine-drive-waterfront-luxury-apartment-kochi',
+                'purpose' => 'sale',
+                'type' => 'flat',
+                'price' => 24500000.00,
+                'price_basis' => 'total',
+                'negotiable' => true,
+                'land_area' => null,
+                'land_area_unit' => 'sqft',
+                'building_area_sqft' => 2800.00,
+                'bedrooms' => 3,
+                'bathrooms' => 4,
+                'amenities' => ['Vembanad Backwater Sunset View', 'Private Boat Slip', 'Infinity Rooftop Pool', 'Concierge Service', '2 Covered Car Parks'],
+                'pros' => ['Prestigious Marine Drive address in Ernakulam/Kochi', 'Uninterrupted backwater and harbor view'],
+                'cons' => ['Monthly HOA maintenance ₹7,500'],
+                'description' => 'Ultra-luxury 3BHK high-rise apartment overlooking the Arabian Sea backwaters at Marine Drive, Kochi. Designer Italian marble interiors and floor-to-ceiling glass walls.',
+                'locality' => 'Marine Drive',
+                'district' => 'Ernakulam',
+                'address_line' => 'Skyline Waterfront, Marine Drive, Kochi 682031',
+                'latitude' => 9.9816,
+                'longitude' => 76.2753,
+                'virtual_tour_url' => null,
+                'rera_number' => 'K-RERA/PRJ/ERS/012/2023',
+                'land_classification' => 'Residential Flat',
+                'status' => 'available',
+                'is_published' => true,
+                'is_featured' => true,
+                'view_count' => 640,
+                'meta_title' => 'Luxury Waterfront 3BHK Flat Marine Drive Kochi | KARMA',
+                'meta_description' => '2800 sq.ft luxury waterfront flat at Marine Drive Kochi with sea views and rooftop pool.',
+                'owner_name' => 'Dr. Alexander Kurian',
+                'owner_phone' => '+91 98460 12345',
+                'owner_email' => 'alex.kurian@kochi-health.org',
+                'owner_notes' => 'Senior Surgeon in Kochi.',
+                'remark' => 'Prime investment property with steady NRI rental demand.',
+            ],
+            [
+                'title' => 'Beachfront Luxury Penthouse in Kozhikode',
+                'slug' => 'beachfront-luxury-penthouse-kozhikode',
+                'purpose' => 'sale',
+                'type' => 'flat',
+                'price' => 18900000.00,
+                'price_basis' => 'total',
+                'negotiable' => true,
+                'land_area' => null,
+                'land_area_unit' => 'sqft',
+                'building_area_sqft' => 2600.00,
+                'bedrooms' => 3,
+                'bathrooms' => 3,
+                'amenities' => ['Panoramic Sea Deck', 'Private Elevator', 'Gymnasium', '24/7 Security'],
+                'pros' => ['Direct sea view over Kozhikode Calicut beach', 'Walking distance to iconic food joints and pier'],
+                'cons' => ['High demand area'],
+                'description' => 'Stunning oceanfront penthouse on Calicut Beach Road. Broad glass terrace overlooking the Arabian Sea sunsets.',
+                'locality' => 'Beach Road',
+                'district' => 'Kozhikode',
+                'address_line' => 'Ocean Crest Towers, Beach Road, Kozhikode 673032',
+                'latitude' => 11.2588,
+                'longitude' => 75.7804,
+                'virtual_tour_url' => null,
+                'rera_number' => 'K-RERA/PRJ/KKD/044/2023',
+                'land_classification' => 'Residential Flat',
+                'status' => 'available',
+                'is_published' => true,
+                'is_featured' => true,
+                'view_count' => 490,
+                'meta_title' => '3BHK Oceanfront Penthouse Kozhikode Beach | KARMA',
+                'meta_description' => '2600 sq.ft sea deck penthouse on Kozhikode Beach Road.',
+                'owner_name' => 'Firoz K. P.',
+                'owner_phone' => '+91 94470 54321',
+                'owner_email' => 'firoz.kp@calicuttraders.com',
+                'owner_notes' => 'Kozhikode business owner.',
+                'remark' => 'Clear title deed.',
+            ],
+            [
+                'title' => 'Wayanad Hilltop Tea Estate Eco Villa in Vythiri',
+                'slug' => 'wayanad-hilltop-tea-estate-eco-villa-vythiri',
+                'purpose' => 'sale',
+                'type' => 'house',
+                'price' => 29500000.00,
+                'price_basis' => 'total',
+                'negotiable' => true,
+                'land_area' => 120.0,
+                'land_area_unit' => 'cent',
+                'building_area_sqft' => 4100.00,
+                'bedrooms' => 5,
+                'bathrooms' => 5,
+                'amenities' => ['Tea Plantation Frontage', 'Mist & Cloud Canopy', 'Fireplace Living Room', 'Boutique Resort Permit'],
+                'pros' => ['Cool year-round hill station climate (18°C-24°C)', 'High weekend homestay income potential'],
+                'cons' => ['Requires monsoon slope inspection'],
+                'description' => 'Breathtaking 1.2-acre tea estate villa high in the mist-shrouded hills of Vythiri, Wayanad. Built with teak timber and natural stone.',
+                'locality' => 'Vythiri',
+                'district' => 'Wayanad',
+                'address_line' => 'Lakkidi View Point Road, Vythiri, Wayanad 673576',
+                'latitude' => 11.5528,
+                'longitude' => 76.0410,
+                'virtual_tour_url' => null,
+                'rera_number' => null,
+                'land_classification' => 'Agricultural / Resort Land',
+                'status' => 'available',
+                'is_published' => true,
+                'is_featured' => true,
+                'view_count' => 510,
+                'meta_title' => '1.2 Acre Tea Estate Eco Villa in Vythiri, Wayanad | KARMA',
+                'meta_description' => '5BHK luxury tea plantation villa in Vythiri Wayanad with mist views.',
+                'owner_name' => 'Siddharth Roy',
+                'owner_phone' => '+91 98950 99887',
+                'owner_email' => 'siddharth@wayanadteahomes.com',
+                'owner_notes' => 'Planter family.',
+                'remark' => 'Boutique homestay license active.',
+            ]
         ];
 
         $propertyImages = [
+            'hillside-spices-plantation-villa-iritty' => [
+                'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+            ],
+            'marine-drive-waterfront-luxury-apartment-kochi' => [
+                'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80',
+            ],
+            'beachfront-luxury-penthouse-kozhikode' => [
+                'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1200&q=80',
+            ],
+            'wayanad-hilltop-tea-estate-eco-villa-vythiri' => [
+                'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1200&q=80',
+            ],
             'cliffside-beachfront-estate-thottada' => [
                 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
                 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1200&q=80',
@@ -444,15 +608,17 @@ class PropertySeeder extends Seeder
             $remark = $item['remark'];
             unset($item['remark']);
 
-            $property = Property::create($item);
+            $property = Property::updateOrCreate(['slug' => $item['slug']], $item);
 
-            InternalRemark::create([
-                'property_id' => $property->id,
-                'remark' => $remark,
-            ]);
+            InternalRemark::updateOrCreate(
+                ['property_id' => $property->id],
+                ['remark' => $remark]
+            );
 
             $imgs = $propertyImages[$property->slug] ?? [];
             if (! empty($imgs)) {
+                // Remove existing media to avoid duplicate cover conflicts
+                PropertyMedia::where('property_id', $property->id)->delete();
                 foreach ($imgs as $idx => $imgUrl) {
                     PropertyMedia::create([
                         'property_id' => $property->id,
@@ -464,17 +630,8 @@ class PropertySeeder extends Seeder
                         'sort_order' => $idx,
                     ]);
                 }
-            } else {
-                PropertyMedia::create([
-                    'property_id' => $property->id,
-                    'media_type' => 'photo',
-                    'thumb_path' => null,
-                    'medium_path' => null,
-                    'full_path' => null,
-                    'is_cover' => true,
-                    'sort_order' => 0,
-                ]);
             }
         }
     }
 }
+

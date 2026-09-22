@@ -107,10 +107,7 @@ export default function PdfBrochure() {
         <div className="watermark">KARMA REAL ESTATE</div>
         
         <div className="pdf-header">
-          <div className="pdf-logo">
-            KARMA
-            <span>REAL ESTATE</span>
-          </div>
+          <img src="/karma-logo.jpeg" alt="KARMA REAL ESTATE" style={{ height: '48px', borderRadius: '6px', objectFit: 'contain' }} />
           <div className="pdf-contact">
             Fort Road, Kannur City<br/>
             Kerala 670001<br/>

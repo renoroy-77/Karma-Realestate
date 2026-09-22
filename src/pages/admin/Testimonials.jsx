@@ -219,18 +219,26 @@ export default function Testimonials() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this testimonial?')) return;
-
-    try {
-      setItems(prev => prev.filter(t => t.id !== id));
-      await api.delete(`/admin/testimonials/${id}`);
-      toast.success('Testimonial deleted');
-    } catch (err) {
-      console.error('Failed to delete testimonial', err);
-      toast.error('Failed to delete testimonial');
-      fetchTestimonials();
-    }
+  const handleDelete = (id) => {
+    toast('Delete this testimonial?', {
+      description: 'This review will be permanently removed from the website.',
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          try {
+            setItems(prev => prev.filter(t => t.id !== id));
+            await api.delete(`/admin/testimonials/${id}`);
+            toast.success('Testimonial deleted');
+          } catch (err) {
+            console.error('Failed to delete testimonial', err);
+            toast.error('Failed to delete testimonial');
+            fetchTestimonials();
+          }
+        }
+      },
+      cancel: { label: 'Cancel' },
+      duration: 6000
+    });
   };
 
   return (

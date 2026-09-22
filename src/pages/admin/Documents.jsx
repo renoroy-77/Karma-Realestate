@@ -1,4 +1,5 @@
 import { useContext, useState, useEffect, useRef } from 'react';
+import { toast } from 'sonner';
 import { AppDataContext } from '../../context/AppDataContext';
 import api from '../../lib/api';
 
@@ -65,9 +66,10 @@ export default function Documents() {
     try {
       await saveRemark(p.id, currentRemark);
       setRemarkSaved(true);
+      toast.success('Internal remark saved');
       setTimeout(() => setRemarkSaved(false), 3000);
     } catch (err) {
-      alert('Failed to save remark: ' + err.message);
+      toast.error('Failed to save remark: ' + (err.message || 'Error'));
     }
   };
 
@@ -102,14 +104,23 @@ export default function Documents() {
     }
   };
 
-  const handleDeleteDoc = async (docId, title) => {
-    if (window.confirm(`Delete "${title}"? This cannot be undone.`)) {
-      try {
-        await deleteDocument(docId, p.id);
-      } catch (err) {
-        alert('Failed to delete document: ' + err.message);
-      }
-    }
+  const handleDeleteDoc = (docId, title) => {
+    toast(`Delete "${title}"?`, {
+      description: 'This document will be permanently removed from the secure vault.',
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          try {
+            await deleteDocument(docId, p.id);
+            toast.success(`"${title}" deleted`);
+          } catch (err) {
+            toast.error('Failed to delete document: ' + (err.message || 'Error'));
+          }
+        }
+      },
+      cancel: { label: 'Cancel' },
+      duration: 6000
+    });
   };
 
   const handleViewDoc = async (docId) => {
@@ -118,7 +129,7 @@ export default function Documents() {
       const fileUrl = window.URL.createObjectURL(new Blob([res.data], { type: res.headers['content-type'] }));
       window.open(fileUrl, '_blank');
     } catch (err) {
-      alert('Could not preview document: ' + err.message);
+      toast.error('Could not preview document: ' + (err.message || 'Error'));
     }
   };
 
@@ -133,7 +144,7 @@ export default function Documents() {
       link.click();
       link.remove();
     } catch (err) {
-      alert('Could not download document: ' + err.message);
+      toast.error('Could not download document: ' + (err.message || 'Error'));
     }
   };
 
@@ -147,7 +158,7 @@ export default function Documents() {
         setDocLogs(res.data.data);
       }
     } catch (err) {
-      alert('Could not load audit logs: ' + err.message);
+      toast.error('Could not load audit logs: ' + (err.message || 'Error'));
     } finally {
       setLogsLoading(false);
     }

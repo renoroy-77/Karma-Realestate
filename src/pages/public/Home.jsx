@@ -1,10 +1,38 @@
-import { useContext, useState, useRef, useEffect } from 'react';
-import { AppDataContext, formatIndianPrice } from '../../context/AppDataContext';
+import { useContext, useState, useRef, useEffect, useCallback } from 'react';
+import { AppDataContext, LOCALITY_COORDS, formatIndianPrice } from '../../context/AppDataContext';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
+import { APIProvider, Map, AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
 import ClientsSectionDemo from '../../components/ui/testimonial-card';
 import api from '../../lib/api';
+
+function MapCenterController({ center, zoom }) {
+  const map = useMap();
+  useEffect(() => {
+    if (map && center && center.lat && center.lng) {
+      map.panTo(center);
+      if (zoom) {
+        map.setZoom(zoom);
+      }
+    }
+  }, [map, center, zoom]);
+  return null;
+}
+
+const DEFAULT_LOC_PHOTOS = {
+  'iritty': 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=300&q=80',
+  'payyanur': 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=300&q=80',
+  'thalassery': 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=300&q=80',
+  'taliparamba': 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=300&q=80',
+  'mattannur': 'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=300&q=80',
+  'kannur': 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=300&q=80',
+  'payyambalam': 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=300&q=80',
+  'kochi': 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=300&q=80',
+  'kozhikode': 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=300&q=80',
+  'wayanad': 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=300&q=80',
+  'allepy': 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=300&q=80',
+  'alappuzha': 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=300&q=80'
+};
 
 function PropertyCard({ p }) {
   const { wishlist, toggleWishlist } = useContext(AppDataContext);
@@ -79,21 +107,113 @@ function CardCarousel({ children }) {
 export default function Home() {
   const { props } = useContext(AppDataContext);
   const [activeMarker, setActiveMarker] = useState(null);
+  const [viewMode, setViewMode] = useState('map');
+  const [activeLoc, setActiveLoc] = useState(null);
+  const [mapCenter, setMapCenter] = useState({ lat: 11.8745, lng: 75.3704 });
+  const [mapZoom, setMapZoom] = useState(9);
+
+  const locScrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
 
   const [cmsSettings, setCmsSettings] = useState({
     hero_headline: 'Find Your Perfect Property in Kerala',
     hero_subheadline: 'Discover 1000+ verified properties across Kerala. Search by location, budget & lifestyle.',
-    hero_announcement: '🔥 Kannur Airport Corridor Commercial Lands Available',
+    hero_announcement: '✈️ Kannur Airport Corridor Commercial Lands Available',
     popular_locations: [
       { name: 'Payyanur', image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=200&q=80' },
       { name: 'Thalassery', image: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=200&q=80' },
       { name: 'Taliparamba', image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=200&q=80' },
-      { name: 'Iritty', image: 'https://images.unsplash.com/photo-1560448204-61dc36dc98c8?auto=format&fit=crop&w=200&q=80' },
+      { name: 'Iritty', image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=200&q=80' },
       { name: 'Mattannur', image: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=200&q=80' },
       { name: 'Kannur City', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=200&q=80' },
-      { name: 'Payyambalam', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=200&q=80' }
+      { name: 'Payyambalam Beach', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=200&q=80' },
+      { name: 'allepy', image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=200&q=80' }
     ]
   });
+
+  const checkScrollLimits = useCallback(() => {
+    if (locScrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = locScrollRef.current;
+      setCanScrollLeft(scrollLeft > 4);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 6);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkScrollLimits();
+    const el = locScrollRef.current;
+    if (el) {
+      el.addEventListener('scroll', checkScrollLimits, { passive: true });
+      window.addEventListener('resize', checkScrollLimits);
+      return () => {
+        el.removeEventListener('scroll', checkScrollLimits);
+        window.removeEventListener('resize', checkScrollLimits);
+      };
+    }
+  }, [cmsSettings.popular_locations, checkScrollLimits]);
+
+  const scrollLocations = (dir) => {
+    if (locScrollRef.current) {
+      const scrollAmt = 240;
+      locScrollRef.current.scrollBy({
+        left: dir === 'left' ? -scrollAmt : scrollAmt,
+        behavior: 'smooth'
+      });
+      setTimeout(checkScrollLimits, 320);
+    }
+  };
+
+  const getMatchingCount = (locName) => {
+    if (!locName) return 0;
+    const lower = locName.toLowerCase().trim();
+    return props.filter(p => {
+      const pl = (p.loc || '').toLowerCase().trim();
+      return pl.includes(lower) || lower.includes(pl);
+    }).length;
+  };
+
+  const handleLocationClick = (loc) => {
+    setActiveLoc(loc.name);
+    if (viewMode !== 'map') setViewMode('map');
+
+    let coords = LOCALITY_COORDS[loc.name];
+    if (!coords) {
+      const key = Object.keys(LOCALITY_COORDS).find(k => 
+        k.toLowerCase().includes(loc.name.toLowerCase()) || loc.name.toLowerCase().includes(k.toLowerCase())
+      );
+      if (key) coords = LOCALITY_COORDS[key];
+    }
+    if (!coords) {
+      const pMatch = props.find(p => p.loc && p.loc.toLowerCase().includes(loc.name.toLowerCase()) && p.lat && p.lng);
+      if (pMatch) coords = { lat: pMatch.lat, lng: pMatch.lng };
+    }
+
+    if (coords) {
+      setMapCenter(coords);
+      setMapZoom(13);
+      const matchingProp = props.find(p => 
+        p.loc && p.loc.toLowerCase().includes(loc.name.toLowerCase()) && p.lat && p.lng
+      );
+      if (matchingProp) {
+        setActiveMarker(matchingProp.id);
+      } else {
+        setActiveMarker(null);
+      }
+    }
+  };
+
+  const handleImageError = (e, locName) => {
+    e.currentTarget.onerror = null;
+    const lower = (locName || '').toLowerCase();
+    for (const [key, fallbackUrl] of Object.entries(DEFAULT_LOC_PHOTOS)) {
+      if (lower.includes(key) || key.includes(lower)) {
+        e.currentTarget.src = fallbackUrl;
+        return;
+      }
+    }
+    e.currentTarget.src = 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=300&q=80';
+  };
 
   useEffect(() => {
     api.get('/settings')
@@ -115,8 +235,8 @@ export default function Home() {
   return (
     <>
       <Helmet>
-        <title>KARMA Real Estate | Properties in Kannur</title>
-        <meta name="description" content="Find your dream home in Kannur. Buy, rent, or lease premium properties verified by KARMA Real Estate." />
+        <title>KARMA Real Estate | Properties in Kerala & Kannur</title>
+        <meta name="description" content="Find your dream property in Kerala. Buy, rent, or lease premium properties in Iritty, Kannur, Kochi, Kozhikode, Wayanad verified by KARMA Real Estate." />
       </Helmet>
       <section className="hero-split">
         <div className="hero-left">
@@ -128,9 +248,9 @@ export default function Home() {
                 gap: 8,
                 padding: '6px 14px',
                 borderRadius: 99,
-                background: 'rgba(6, 95, 70, 0.08)',
-                border: '1px solid rgba(6, 95, 70, 0.18)',
-                color: '#065f46',
+                background: 'rgba(197, 160, 89, 0.12)',
+                border: '1px solid rgba(197, 160, 89, 0.3)',
+                color: '#A8833E',
                 fontSize: 12.5,
                 fontWeight: 700,
                 marginBottom: 16
@@ -162,26 +282,115 @@ export default function Home() {
             </div>
 
             <div className="hero-locs">
-              <h3 className="hl-title">Popular Locations</h3>
-              <div className="hl-scroll">
-                {(cmsSettings.popular_locations || []).map((loc, idx) => (
-                  <Link
-                    key={idx}
-                    to={`/results?loc=${encodeURIComponent(loc.name)}`}
-                    className="hl-card"
-                    style={{ textDecoration: 'none', color: 'inherit' }}
+              <div className="hl-header">
+                <div className="hl-title-group">
+                  <h3 className="hl-title">Popular Locations</h3>
+                  <span className="hl-badge">
+                    {(cmsSettings.popular_locations || []).length} Places
+                  </span>
+                </div>
+                <div className="hl-nav-group">
+                  <button
+                    type="button"
+                    onClick={() => scrollLocations('left')}
+                    disabled={!canScrollLeft}
+                    className="hl-nav-btn"
+                    aria-label="Previous locations"
+                    title="Scroll left"
                   >
-                    <img
-                      src={loc.image || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=200&q=80'}
-                      alt={loc.name}
-                      loading="lazy"
-                    />
-                    <span>{loc.name}</span>
-                  </Link>
-                ))}
-                <Link to="/results" className="hl-next" style={{ display: 'grid', placeItems: 'center', textDecoration: 'none', color: 'inherit' }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
-                </Link>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollLocations('right')}
+                    disabled={!canScrollRight}
+                    className="hl-nav-btn"
+                    aria-label="Next locations"
+                    title="Scroll right"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              {activeLoc && (
+                <div className="hl-active-banner">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span className="hl-pulse-dot"></span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: '#334155' }}>
+                      Viewing <strong>{activeLoc}</strong> on map
+                      {getMatchingCount(activeLoc) > 0 ? ` (${getMatchingCount(activeLoc)} properties)` : ''}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Link
+                      to={`/results?loc=${encodeURIComponent(activeLoc)}`}
+                      className="hl-active-explore"
+                    >
+                      <span>Explore</span>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveLoc(null);
+                        setMapCenter({ lat: 11.8745, lng: 75.3704 });
+                        setMapZoom(9);
+                        setActiveMarker(null);
+                      }}
+                      className="hl-active-reset"
+                      title="Reset map view"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="hl-scroll-container">
+                <div className="hl-scroll" ref={locScrollRef}>
+                  {(cmsSettings.popular_locations || []).map((loc, idx) => {
+                    const isActive = activeLoc === loc.name;
+                    const count = getMatchingCount(loc.name);
+                    return (
+                      <div
+                        key={idx}
+                        className={`hl-card ${isActive ? 'active' : ''}`}
+                        onClick={() => handleLocationClick(loc)}
+                        role="button"
+                        tabIndex={0}
+                        title={`Click to view ${loc.name} on map`}
+                      >
+                        {isActive && (
+                          <div className="hl-card-active-tag">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+                            <span>Live</span>
+                          </div>
+                        )}
+                        <Link
+                          to={`/results?loc=${encodeURIComponent(loc.name)}`}
+                          className="hl-card-explore-btn"
+                          title={`Explore all properties in ${loc.name}`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                        </Link>
+                        <img
+                          src={loc.image || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=300&q=80'}
+                          alt={loc.name}
+                          loading="lazy"
+                          onError={(e) => handleImageError(e, loc.name)}
+                        />
+                        <div className="hl-card-content">
+                          <span className="hl-card-name">{loc.name}</span>
+                          <span className="hl-card-sub">
+                            {count > 0 ? `${count} listings` : 'Explore area'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
             
@@ -198,48 +407,109 @@ export default function Home() {
         </div>
         <div className="hero-right">
           <div className="hr-map">
-            <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}>
-              <Map
-                defaultZoom={11}
-                defaultCenter={{ lat: 11.874477, lng: 75.370182 }}
-                mapId="DEMO_MAP_ID"
-                disableDefaultUI={true}
-                gestureHandling={'greedy'}
-                style={{ width: '100%', height: '100%' }}
+            {/* View Mode Toggle Controls */}
+            <div className="hr-controls">
+              <button
+                onClick={() => setViewMode('map')}
+                className={`hr-btn ${viewMode === 'map' ? 'active' : ''}`}
+                aria-label="Map View"
               >
-                {props.filter(p => p.lat && p.lng).slice(0, 15).map(p => (
-                  <AdvancedMarker 
-                    key={p.id} 
-                    position={{ lat: p.lat, lng: p.lng }}
-                    onMouseEnter={() => setActiveMarker(p.id)}
-                    onMouseLeave={() => setActiveMarker(null)}
-                    onClick={() => setActiveMarker(p.id === activeMarker ? null : p.id)}
-                  >
-                    <div className={`nq-marker ${activeMarker === p.id ? 'active' : ''}`} style={{ position: 'relative', transform: 'translate(0, -10px)' }}>
-                      {p.priceFormatted || formatIndianPrice(p.price, p.purpose)}
-                      <div className="nq-marker-caret"></div>
-                      
-                      {activeMarker === p.id && (
-                        <div className="nq-map-popup">
-                          <img src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt={p.title} />
-                          <div className="nq-mp-info">
-                            <b>{p.title}</b>
-                            <div className="nq-mp-meta">
-                              <span>⭐ 4.8</span>
-                              <strong>{p.priceFormatted || formatIndianPrice(p.price, p.purpose)}</strong>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                Map View
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`hr-btn ${viewMode === 'list' ? 'active' : ''}`}
+                aria-label="List View"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                List View
+              </button>
+            </div>
+
+            {/* Render Map View vs List View */}
+            {viewMode === 'map' ? (
+              <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}>
+                <Map
+                  defaultZoom={9}
+                  minZoom={7}
+                  maxZoom={18}
+                  defaultCenter={{ lat: 11.4500, lng: 75.7000 }}
+                  restriction={{
+                    latLngBounds: {
+                      north: 13.10,
+                      south: 8.10,
+                      west: 74.30,
+                      east: 77.80
+                    },
+                    strictBounds: true
+                  }}
+                  mapId="DEMO_MAP_ID"
+                  disableDefaultUI={true}
+                  gestureHandling={'greedy'}
+                  style={{ width: '100%', height: '100%' }}
+                >
+                  <MapCenterController center={mapCenter} zoom={mapZoom} />
+                  {props.filter(p => p.lat && p.lng).map(p => (
+                    <AdvancedMarker 
+                      key={p.id} 
+                      position={{ lat: p.lat, lng: p.lng }}
+                      onMouseEnter={() => setActiveMarker(p.id)}
+                      onMouseLeave={() => setActiveMarker(null)}
+                      onClick={() => setActiveMarker(p.id === activeMarker ? null : p.id)}
+                    >
+                      <div className={`nq-marker ${activeMarker === p.id ? 'active' : ''}`} style={{ position: 'relative', transform: 'translate(0, -10px)' }}>
+                        {p.priceFormatted || formatIndianPrice(p.price, p.purpose)}
+                        <div className="nq-marker-caret"></div>
+                        
+                        {activeMarker === p.id && (
+                          <div className="nq-map-popup">
+                            <img src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt={p.title} />
+                            <div className="nq-mp-info">
+                              <b>{p.title}</b>
+                              <div className="nq-mp-meta">
+                                <span>⭐ 4.8</span>
+                                <strong>{p.priceFormatted || formatIndianPrice(p.price, p.purpose)}</strong>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
+                    </AdvancedMarker>
+                  ))}
+                </Map>
+              </APIProvider>
+            ) : (
+              <div className="hr-list-wrap">
+                <div className="hr-list-header">
+                  <span className="hr-list-title">Verified Listings</span>
+                  <span className="hr-list-count">{props.length} Properties</span>
+                </div>
+                {props.map((p) => (
+                  <Link
+                    key={p.id}
+                    to={`/kannur/${p.type?.toLowerCase() || 'property'}/${p.slug || p.id}`}
+                    className="hr-list-card"
+                  >
+                    <img
+                      src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'}
+                      alt={p.title}
+                      className="hr-list-img"
+                      loading="lazy"
+                    />
+                    <div className="hr-list-info">
+                      <div>
+                        <div className="hr-list-name">{p.title || `${p.type} in ${p.loc}`}</div>
+                        <div className="hr-list-sub">📍 {p.loc} &middot; {p.type}</div>
+                      </div>
+                      <div className="hr-list-price">
+                        {p.priceFormatted || formatIndianPrice(p.price, p.purpose)}
+                      </div>
                     </div>
-                  </AdvancedMarker>
+                  </Link>
                 ))}
-              </Map>
-            </APIProvider>
-            <div className="hr-controls">
-              <button className="hr-btn active"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> Map View</button>
-              <button className="hr-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> List View</button>
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </section>

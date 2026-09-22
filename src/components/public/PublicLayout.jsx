@@ -3,6 +3,7 @@ import { useState, useEffect, useContext, useRef } from 'react'
 import { toast } from 'sonner'
 import { LOCALITIES, AppDataContext } from '../../context/AppDataContext'
 import api from '../../lib/api'
+import KarmaLogo from '../ui/KarmaLogo'
 
 function CookieBanner() {
   const [show, setShow] = useState(true);
@@ -292,8 +293,7 @@ function Header() {
       <header className={`hdr hdr-solid ${isExpanded ? 'hdr-expanded' : ''}`} style={{ position: 'fixed' }}>
         <div className="hdr-in">
           <Link to="/" className="logo" style={{ textDecoration: 'none', zIndex: 2 }}>
-            <div className="logo-mark" style={{ background: 'var(--blue)' }}>K</div>
-            <div className="logo-txt"><b style={{ color: 'var(--blue)' }}>KARMA</b><span>REAL ESTATE</span></div>
+            <KarmaLogo height={44} />
           </Link>
 
           <div className="hdr-search-container">
@@ -414,7 +414,7 @@ function Header() {
       )}
       <div className={`pub-side ${showMobileMenu ? 'open' : ''}`}>
         <div className="pub-side-hd">
-          <div className="logo-txt"><b style={{color: 'var(--blue)'}}>KARMA</b><span style={{color: 'var(--ink-2)'}}>REAL ESTATE</span></div>
+          <KarmaLogo height={38} />
           <button className="pub-side-close" onClick={() => setShowMobileMenu(false)}>✕</button>
         </div>
         <nav className="pub-side-nav">
@@ -819,8 +819,10 @@ export function Footer() {
     <footer className="footer">
       <div className="footer-in">
         <div className="f-brand">
-          <div className="logo"><div className="logo-mark">K</div><div className="logo-txt"><b>KARMA</b><span>REAL ESTATE</span></div></div>
-          <p>A Kannur-first property marketplace. Land, houses, flats, warehouses and commercial spaces — for sale, rent and lease.</p>
+          <Link to="/" style={{ textDecoration: 'none' }}>
+            <KarmaLogo height={48} />
+          </Link>
+          <p style={{ marginTop: '12px' }}>A Kannur-first property marketplace. Land, houses, flats, warehouses and commercial spaces — for sale, rent and lease.</p>
         </div>
         <div>
           <h4>Quick Links</h4>

@@ -1,6 +1,7 @@
 import { Outlet, NavLink, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useContext, useState, useEffect } from 'react';
 import { AppDataContext } from '../../context/AppDataContext';
+import KarmaLogo from '../ui/KarmaLogo';
 
 const TITLES = {
   '/admin/dashboard': ['Dashboard', 'Real-time overview of properties, leads and activities'],
@@ -36,8 +37,7 @@ function Sidebar({ mobileOpen, closeSidebar }) {
       <aside className={`side ${mobileOpen ? 'mobile-open' : ''}`}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
           <Link to="/" className="logo" style={{ textDecoration: 'none' }} onClick={closeSidebar}>
-            <div className="logo-mark">K</div>
-            <div className="logo-txt"><b>KARMA</b><span>ADMIN PANEL</span></div>
+            <KarmaLogo height={38} />
           </Link>
           {mobileOpen && (
             <button className="mobile-close-btn" onClick={closeSidebar}>✕</button>
@@ -135,7 +135,7 @@ export default function AdminLayout() {
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
             <div className="logo" style={{ margin: 0, textDecoration: 'none' }}>
-              <div className="logo-mark" style={{ width: '32px', height: '32px', fontSize: '14px' }}>K</div>
+              <KarmaLogo height={32} />
             </div>
             <div style={{width: '24px'}}></div>
           </div>

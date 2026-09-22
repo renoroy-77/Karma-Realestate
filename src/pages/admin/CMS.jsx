@@ -13,7 +13,7 @@ export default function CMS() {
   const [cmsData, setCmsData] = useState({
     hero_headline: 'Find Your Perfect Property in Kerala',
     hero_subheadline: 'Discover 1000+ verified properties across Kerala. Search by location, budget & lifestyle.',
-    hero_announcement: '🔥 Kannur Airport Corridor Commercial Lands Available',
+    hero_announcement: '✈️ Kannur Airport Corridor Commercial Lands Available',
     popular_locations: [
       { name: 'Payyanur', image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=200&q=80' },
       { name: 'Thalassery', image: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=200&q=80' },
@@ -260,7 +260,7 @@ export default function CMS() {
                 type="text"
                 value={cmsData.hero_announcement}
                 onChange={e => setCmsData({ ...cmsData, hero_announcement: e.target.value })}
-                placeholder="e.g. 🔥 Kannur Airport Corridor Commercial Lands Available"
+                placeholder="e.g. ✈️ Kannur Airport Corridor Commercial Lands Available"
                 style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #cbd5e1', fontSize: 14 }}
               />
             </div>

@@ -1,5 +1,6 @@
 import { useContext, useState, useMemo, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
 import { AppDataContext, LOCALITY_COORDS, formatIndianPrice } from '../../context/AppDataContext';
 
 const AMENITIES_LIST = [
@@ -467,28 +468,52 @@ export default function Properties() {
     }));
   };
 
-  const handleDeleteOne = async (id, title) => {
-    if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
-      try {
-        await deleteProperty(id);
-      } catch (err) {
-        alert('Failed to delete property: ' + err.message);
-      }
-    }
+  const handleDeleteOne = (id, title) => {
+    toast(`Delete "${title}"?`, {
+      description: 'This listing will be permanently removed from the website.',
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          const tId = toast.loading('Deleting property...');
+          try {
+            await deleteProperty(id);
+            toast.success(`"${title}" deleted successfully`, { id: tId });
+          } catch (err) {
+            toast.error('Failed to delete property: ' + (err.message || 'Error'), { id: tId });
+          }
+        }
+      },
+      cancel: {
+        label: 'Cancel'
+      },
+      duration: 6000
+    });
   };
 
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => {
     if (!selectedIds.length) return;
-    if (window.confirm(`Are you sure you want to delete ${selectedIds.length} properties?`)) {
-      for (const id of selectedIds) {
-        try {
-          await deleteProperty(id);
-        } catch (e) {
-          console.error(e);
+    toast(`Delete ${selectedIds.length} properties?`, {
+      description: 'All selected listings will be deleted.',
+      action: {
+        label: `Delete (${selectedIds.length})`,
+        onClick: async () => {
+          const tId = toast.loading(`Deleting ${selectedIds.length} properties...`);
+          try {
+            for (const id of selectedIds) {
+              await deleteProperty(id);
+            }
+            setSelectedIds([]);
+            toast.success('Selected properties deleted', { id: tId });
+          } catch (e) {
+            toast.error('Failed to delete some properties', { id: tId });
+          }
         }
-      }
-      setSelectedIds([]);
-    }
+      },
+      cancel: {
+        label: 'Cancel'
+      },
+      duration: 6000
+    });
   };
 
   return (

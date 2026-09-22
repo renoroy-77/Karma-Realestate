@@ -1,9 +1,20 @@
-import { useContext, useState, useRef, useEffect } from 'react';
-import { AppDataContext, formatIndianPrice } from '../../context/AppDataContext';
+import { useContext, useState, useRef, useEffect, useMemo } from 'react';
+import { AppDataContext, LOCALITY_COORDS, formatIndianPrice } from '../../context/AppDataContext';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { APIProvider, Map, AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
 import { Footer } from '../../components/public/PublicLayout';
+
+function MapCenterController({ center }) {
+  const map = useMap();
+  useEffect(() => {
+    if (map && center && center.lat && center.lng) {
+      map.panTo(center);
+      map.setZoom(13);
+    }
+  }, [map, center]);
+  return null;
+}
 
 function BoundsUpdater({ setMapBounds }) {
   const map = useMap();
@@ -123,21 +134,53 @@ export default function Results() {
     return () => window.removeEventListener('toggle-filters', handleToggle);
   }, []);
 
-  const filteredProps = props.filter(p => {
-    const pMatch = filterPurpose === 'All' || p.purpose.toLowerCase() === filterPurpose.toLowerCase();
-    const lMatch = filterLoc === '' || p.loc?.toLowerCase() === filterLoc.toLowerCase();
-    const tMatch = filterType === 'All' || p.type?.toLowerCase() === filterType.toLowerCase();
-    
-    const numPrice = parseFloat(p.price) || 0;
-    let priceMatch = true;
-    if (filterPrice === 'Under 50L') priceMatch = numPrice < 5000000;
-    else if (filterPrice === '50L - 100L') priceMatch = numPrice >= 5000000 && numPrice <= 10000000;
-    else if (filterPrice === 'Over 100L') priceMatch = numPrice > 10000000;
+  const availableLocations = useMemo(() => {
+    const locSet = new Set();
+    props.forEach(p => { if (p.loc) locSet.add(p.loc); });
+    Object.keys(LOCALITY_COORDS).forEach(l => locSet.add(l));
+    if (filterLoc) locSet.add(filterLoc);
+    return Array.from(locSet).sort();
+  }, [props, filterLoc]);
 
-    const bMatch = filterBaths === 'All' || (p.beds && parseInt(p.beds, 10) >= parseInt(filterBaths, 10));
+  const filteredProps = useMemo(() => {
+    return props.filter(p => {
+      const pMatch = filterPurpose === 'All' || p.purpose.toLowerCase() === filterPurpose.toLowerCase();
+      
+      const lMatch = !filterLoc || (() => {
+        const f = filterLoc.trim().toLowerCase();
+        const pl = (p.loc || '').trim().toLowerCase();
+        if (pl === f) return true;
+        if (pl.includes(f) || f.includes(pl)) return true;
+        if (f.includes('kannur') && pl.includes('kannur')) return true;
+        if (f.includes('payyambalam') && pl.includes('payyambalam')) return true;
+        return false;
+      })();
 
-    return pMatch && lMatch && tMatch && priceMatch && bMatch;
-  });
+      const tMatch = filterType === 'All' || p.type?.toLowerCase() === filterType.toLowerCase();
+      
+      const numPrice = parseFloat(p.price) || 0;
+      let priceMatch = true;
+      if (filterPrice === 'Under 50L') priceMatch = numPrice < 5000000;
+      else if (filterPrice === '50L - 100L') priceMatch = numPrice >= 5000000 && numPrice <= 10000000;
+      else if (filterPrice === 'Over 100L') priceMatch = numPrice > 10000000;
+
+      const bMatch = filterBaths === 'All' || (p.beds && parseInt(p.beds, 10) >= parseInt(filterBaths, 10));
+
+      return pMatch && lMatch && tMatch && priceMatch && bMatch;
+    });
+  }, [props, filterPurpose, filterLoc, filterType, filterPrice, filterBaths]);
+
+  const activeCenter = useMemo(() => {
+    if (!filterLoc) return null;
+    if (LOCALITY_COORDS[filterLoc]) return LOCALITY_COORDS[filterLoc];
+    const matchProp = filteredProps.find(p => p.lat && p.lng);
+    if (matchProp) return { lat: matchProp.lat, lng: matchProp.lng };
+    const key = Object.keys(LOCALITY_COORDS).find(k => 
+      k.toLowerCase().includes(filterLoc.toLowerCase()) || filterLoc.toLowerCase().includes(k.toLowerCase())
+    );
+    if (key) return LOCALITY_COORDS[key];
+    return null;
+  }, [filterLoc, filteredProps]);
 
   const sortedProps = [...filteredProps].sort((a, b) => {
     if (sortBy === 'Price: Low to High') return a.price - b.price;
@@ -214,10 +257,9 @@ export default function Results() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
           <select value={filterLoc} onChange={e => setFilterLoc(e.target.value)} className="nq-sel">
             <option value="">Any Location</option>
-            <option value="Kannur City">Kannur City</option>
-            <option value="Thottada">Thottada</option>
-            <option value="Payyambalam">Payyambalam</option>
-            <option value="Talap">Talap</option>
+            {availableLocations.map(loc => (
+              <option key={loc} value={loc}>{loc}</option>
+            ))}
           </select>
         </label>
         
@@ -334,6 +376,8 @@ export default function Results() {
               gestureHandling={'greedy'}
               style={{ width: '100%', height: '100%' }}
             >
+              <BoundsUpdater setMapBounds={setMapBounds} />
+              <MapCenterController center={activeCenter} />
               {sortedProps.map(p => (
                 p.lat && p.lng && (
                   <AdvancedMarker 
