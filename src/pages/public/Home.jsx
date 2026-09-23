@@ -119,7 +119,7 @@ export default function Home() {
   const [cmsSettings, setCmsSettings] = useState({
     hero_headline: 'Find Your Perfect Property in Kerala',
     hero_subheadline: 'Discover 1000+ verified properties across Kerala. Search by location, budget & lifestyle.',
-    hero_announcement: '✈️ Kannur Airport Corridor Commercial Lands Available',
+    hero_announcement: '🔥 Kannur Airport Corridor Commercial Lands Available',
     popular_locations: [
       { name: 'Payyanur', image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=200&q=80' },
       { name: 'Thalassery', image: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=200&q=80' },
@@ -216,20 +216,60 @@ export default function Home() {
   };
 
   useEffect(() => {
-    api.get('/settings')
-      .then(res => {
-        if (res.data.success && res.data.data) {
-          const d = res.data.data;
+    let isMounted = true;
+
+    const fetchCmsSettings = async () => {
+      try {
+        let d = null;
+
+        // 1. Try public /settings endpoint
+        try {
+          const res = await api.get('/settings');
+          if (res.data?.success && res.data?.data) {
+            d = res.data.data;
+          }
+        } catch {
+          // fallback to /home
+        }
+
+        // 2. Fallback to /home composite endpoint
+        if (!d) {
+          try {
+            const homeRes = await api.get('/home');
+            if (homeRes.data?.success && homeRes.data?.data) {
+              const hData = homeRes.data.data;
+              d = {
+                hero_headline: hData.hero_cms?.hero_headline || hData.hero_cms?.headline,
+                hero_subheadline: hData.hero_cms?.hero_subheadline || hData.hero_cms?.subheadline,
+                hero_announcement: hData.hero_cms?.hero_announcement || hData.hero_cms?.announcement,
+              };
+            }
+          } catch {
+            // ignore
+          }
+        }
+
+        if (d && isMounted) {
           setCmsSettings(prev => ({
             ...prev,
-            hero_headline: d.hero_headline || prev.hero_headline,
-            hero_subheadline: d.hero_subheadline || prev.hero_subheadline,
-            hero_announcement: d.hero_announcement !== undefined ? d.hero_announcement : prev.hero_announcement,
+            hero_headline: d.hero_headline || d.headline || prev.hero_headline,
+            hero_subheadline: d.hero_subheadline || d.subheadline || prev.hero_subheadline,
+            hero_announcement: (d.hero_announcement !== undefined && d.hero_announcement !== null && d.hero_announcement !== '') 
+              ? d.hero_announcement 
+              : (d.announcement !== undefined && d.announcement !== null && d.announcement !== '' ? d.announcement : prev.hero_announcement),
             popular_locations: Array.isArray(d.popular_locations) && d.popular_locations.length > 0 ? d.popular_locations : prev.popular_locations
           }));
         }
-      })
-      .catch(() => {});
+      } catch (err) {
+        console.error('Failed to load CMS settings:', err);
+      }
+    };
+
+    fetchCmsSettings();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
   
   return (

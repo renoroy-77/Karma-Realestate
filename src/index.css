@@ -59,8 +59,8 @@ a, button { transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
 .hdr{position:absolute;top:0;left:0;right:0;z-index:60;background:#fff;border-bottom:1px solid var(--line);transition:box-shadow .2s}
 .hdr-in{max-width:1760px;margin:0 auto;padding:0 24px;height:80px;display:flex;align-items:center;justify-content:space-between;gap:16px}
 .logo{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;text-decoration:none}
-.karma-logo-img{transition:transform .2s ease, box-shadow .2s ease}
-.karma-logo-img:hover{transform:scale(1.02)}
+.karma-logo-img{transition:transform .2s ease, filter .2s ease}
+.karma-logo-img:hover{transform:scale(1.03);filter:drop-shadow(0 3px 8px rgba(197, 160, 89, 0.45))}
 .logo-mark{width:36px;height:36px;border-radius:11px;background:var(--blue);display:grid;place-items:center;color:#fff;font-weight: 700;font-size:17px;letter-spacing:-.5px}
 .logo-txt{line-height:1.05}
 .logo-txt b{display:block;font-size:16px;font-weight: 700;letter-spacing:.5px;color:var(--blue)}

@@ -69,8 +69,11 @@ class HomeController extends Controller
                 'hero_banners' => PropertyListResource::collection($featured->take(3)),
                 'hero_cms' => [
                     'headline' => SiteSetting::get('hero_headline', 'Find Your Perfect Property in Kerala'),
+                    'hero_headline' => SiteSetting::get('hero_headline', 'Find Your Perfect Property in Kerala'),
                     'subheadline' => SiteSetting::get('hero_subheadline', 'Discover 1000+ verified properties across Kerala. Search by location, budget & lifestyle.'),
+                    'hero_subheadline' => SiteSetting::get('hero_subheadline', 'Discover 1000+ verified properties across Kerala. Search by location, budget & lifestyle.'),
                     'announcement' => SiteSetting::get('hero_announcement', '🔥 Kannur Airport Corridor Commercial Lands Available'),
+                    'hero_announcement' => SiteSetting::get('hero_announcement', '🔥 Kannur Airport Corridor Commercial Lands Available'),
                     'stats_properties' => SiteSetting::get('stats_properties', '1,000+'),
                     'stats_clients' => SiteSetting::get('stats_clients', '850+'),
                     'stats_volume' => SiteSetting::get('stats_volume', '₹250+ Cr'),

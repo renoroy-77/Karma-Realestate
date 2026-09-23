@@ -1,5 +1,5 @@
 import React from 'react';
-import karmaLogoImg from '../../assets/karma-logo.jpeg';
+import karmaLogoImg from '../../assets/karma-logo-transparent.png';
 
 export default function KarmaLogo({ height = 40, className = '', style = {}, onClick, alt = 'KARMA REAL ESTATE' }) {
   return (
@@ -21,9 +21,8 @@ export default function KarmaLogo({ height = 40, className = '', style = {}, onC
           height: typeof height === 'number' ? `${height}px` : height, 
           width: 'auto',
           objectFit: 'contain', 
-          borderRadius: '8px',
           display: 'block',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)'
+          filter: 'drop-shadow(0 1.5px 3px rgba(0, 0, 0, 0.2))'
         }} 
       />
     </div>
