@@ -87,7 +87,7 @@ function CardCarousel({ children }) {
 }
 
 function PropertyCard({ p }) {
-  const { wishlist, toggleWishlist, user, setShowAuthModal } = useContext(AppDataContext);
+  const { wishlist, toggleWishlist } = useContext(AppDataContext);
   const inWishlist = wishlist.includes(p.id);
   const propertyPath = `/kannur/${(p.type || 'house').toLowerCase()}/${p.slug || p.id}`;
 
@@ -137,11 +137,7 @@ function PropertyCard({ p }) {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            if (!user) {
-              setShowAuthModal(true);
-            } else {
-              toggleWishlist(p.id);
-            }
+            toggleWishlist(p.id);
           }}
           aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
           style={{
@@ -229,6 +225,16 @@ function formatEmbedUrl(url) {
   return url;
 }
 
+export const TOUR_TIME_SLOTS = [
+  { value: '09:00 AM', label: '09:00 AM' },
+  { value: '10:00 AM', label: '10:00 AM' },
+  { value: '11:30 AM', label: '11:30 AM' },
+  { value: '01:00 PM', label: '01:00 PM' },
+  { value: '02:30 PM', label: '02:30 PM' },
+  { value: '04:00 PM', label: '04:00 PM' },
+  { value: '05:30 PM', label: '05:30 PM' },
+];
+
 export default function PropertyDetail() {
   const { props, user, wishlist, toggleWishlist, addLead, setShowAuthModal } = useContext(AppDataContext);
   const { slug } = useParams();
@@ -241,8 +247,12 @@ export default function PropertyDetail() {
 
   // Site Visit Modal State
   const [visitStep, setVisitStep] = useState(0); // 0: form, 1: success
-  const [visitDate, setVisitDate] = useState('');
-  const [visitTime, setVisitTime] = useState('10:00 AM');
+  const [visitDate, setVisitDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+  });
+  const [visitTime, setVisitTime] = useState('04:00 PM');
   const [submittingTour, setSubmittingTour] = useState(false);
 
   // Initial optimistic match from context
@@ -277,6 +287,20 @@ export default function PropertyDetail() {
       })
       .catch(() => {});
 
+    return () => { isMounted = false; };
+  }, [slug]);
+
+  // When user logs in or authenticates, re-fetch property coordinates silently without resetting tour form state
+  useEffect(() => {
+    if (!user) return;
+    let isMounted = true;
+    api.get(`/properties/${slug}`)
+      .then(res => {
+        if (res.data.success && isMounted) {
+          setPropData(mapBackendPropToFrontend(res.data.data));
+        }
+      })
+      .catch(() => {});
     return () => { isMounted = false; };
   }, [slug, user]);
 
@@ -331,7 +355,7 @@ export default function PropertyDetail() {
     const bookingDate = visitDate || new Date().toISOString().split('T')[0];
 
     try {
-      await api.post('/site-visit', {
+      await api.post('/site-visits', {
         property_id: p.id,
         visitor_name: user?.name || 'Interested Buyer',
         visitor_email: user?.email || (user?.phone ? `${user.phone}@karmarealestate.in` : 'buyer@karmarealestate.in'),
@@ -354,7 +378,8 @@ export default function PropertyDetail() {
       setVisitStep(1);
     } catch (err) {
       console.error('Site visit API submission error', err);
-      toast.error('Failed to submit tour request. Please try again or WhatsApp us.');
+      const msg = err.response?.data?.message || 'Failed to submit tour request. Please try again or WhatsApp us.';
+      toast.error(msg);
     } finally {
       setSubmittingTour(false);
     }
@@ -422,13 +447,7 @@ export default function PropertyDetail() {
             <button 
               className="btn btn-outline" 
               style={{ padding: '8px 14px', color: inWishlist ? '#ef4444' : 'inherit', borderColor: inWishlist ? '#ef4444' : 'var(--line)' }} 
-              onClick={() => {
-                if (!user) {
-                  setShowAuthModal(true);
-                } else {
-                  toggleWishlist(p.id);
-                }
-              }}
+              onClick={() => toggleWishlist(p.id)}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill={inWishlist ? "#ef4444" : "none"} stroke="currentColor" strokeWidth="2">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -1045,10 +1064,9 @@ export default function PropertyDetail() {
                         onChange={e => setVisitTime(e.target.value)}
                         style={{ border: '1px solid var(--line)', borderRadius: 8, padding: '8px 12px', width: '100%', boxSizing: 'border-box' }}
                       >
-                        <option value="10:00 AM">10:00 AM</option>
-                        <option value="12:00 PM">12:00 PM</option>
-                        <option value="02:00 PM">02:00 PM</option>
-                        <option value="04:00 PM">04:00 PM</option>
+                        {TOUR_TIME_SLOTS.map(slot => (
+                          <option key={slot.value} value={slot.value}>{slot.label}</option>
+                        ))}
                       </select>
                     </div>
                   </div>

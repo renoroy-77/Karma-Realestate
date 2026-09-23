@@ -64,7 +64,10 @@ function Header() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showSellModal, setShowSellModal] = useState(false);
-  const { user, setUser, showAuthModal, setShowAuthModal } = useContext(AppDataContext);
+  const { 
+    user, setUser, showAuthModal, setShowAuthModal, 
+    fetchWishlist, clearWishlist, pendingWishlistId, setPendingWishlistId, toggleWishlist 
+  } = useContext(AppDataContext);
   const location = useLocation();
   const navigate = useNavigate();
   const isHome = location.pathname === '/';
@@ -233,6 +236,17 @@ function Header() {
         };
         localStorage.setItem('lead_data', JSON.stringify(verifiedUser));
         setUser(verifiedUser);
+
+        // Fetch wishlist now that lead token is saved
+        fetchWishlist();
+
+        // Handle any pending property save that triggered the auth modal
+        if (pendingWishlistId) {
+          const targetId = pendingWishlistId;
+          setPendingWishlistId(null);
+          toggleWishlist(targetId);
+        }
+
         setStep(2);
         toast.success('Access Granted! GPS coordinates and confidential insights unlocked.', {
           description: `Welcome, ${verifiedUser.name}!`
@@ -264,6 +278,7 @@ function Header() {
     localStorage.removeItem('lead_token');
     localStorage.removeItem('lead_data');
     setUser(null);
+    clearWishlist();
     toast.info('Logged out successfully');
   };
 

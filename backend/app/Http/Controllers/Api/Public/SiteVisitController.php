@@ -21,8 +21,8 @@ class SiteVisitController extends Controller
     {
         $validated = $request->validated();
 
-        // 1. Find or create lead
-        $lead = Lead::firstOrCreate(
+        // 1. Find or create lead (prefer authenticated verified lead if available)
+        $lead = $request->attributes->get('verified_lead') ?? Lead::firstOrCreate(
             ['email' => $validated['visitor_email']],
             [
                 'name' => $validated['visitor_name'],
@@ -57,13 +57,17 @@ class SiteVisitController extends Controller
             }
         }
 
+        $formattedDate = $visit->preferred_date instanceof \DateTimeInterface 
+            ? $visit->preferred_date->format('Y-m-d') 
+            : (string) $visit->preferred_date;
+
         return response()->json([
             'success' => true,
             'message' => 'Site visit requested successfully. Our agent will contact you shortly to confirm the appointment.',
             'data' => [
                 'booking_id' => $visit->id,
                 'status' => $visit->booking_status,
-                'preferred_date' => $visit->preferred_date->format('Y-m-d'),
+                'preferred_date' => $formattedDate,
                 'preferred_time_slot' => $visit->preferred_time_slot,
             ],
         ], 201);

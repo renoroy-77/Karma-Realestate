@@ -205,9 +205,45 @@ export function AppDataProvider({ children }) {
   const [accessLog, setAccessLog] = useState([]);
   
   const [wishlist, setWishlist] = useState([]);
+  const [pendingWishlistId, setPendingWishlistId] = useState(null);
   const [user, setUser] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [adminUser, setAdminUser] = useState(null);
+
+  // Fetch verified user's wishlist
+  const fetchWishlist = useCallback(async () => {
+    const leadToken = localStorage.getItem('lead_token');
+    if (!leadToken) {
+      setWishlist([]);
+      return;
+    }
+    try {
+      const res = await api.get('/wishlist');
+      if (res.data?.success && Array.isArray(res.data?.data)) {
+        const ids = res.data.data
+          .map(w => (w.id !== undefined ? w.id : w.property_id))
+          .filter(Boolean);
+        setWishlist(ids);
+
+        // Merge wishlisted property details into props if any are not in the initial list
+        const loadedProps = res.data.data.filter(w => w.id && w.title).map(mapBackendPropToFrontend);
+        if (loadedProps.length > 0) {
+          setProps(prev => {
+            const existingIds = new Set(prev.map(p => p.id));
+            const newToAdd = loadedProps.filter(p => !existingIds.has(p.id));
+            return newToAdd.length > 0 ? [...prev, ...newToAdd] : prev;
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching wishlist', err);
+    }
+  }, []);
+
+  const clearWishlist = useCallback(() => {
+    setWishlist([]);
+    setPendingWishlistId(null);
+  }, []);
 
   // Initialize data
   useEffect(() => {
@@ -246,20 +282,9 @@ export function AppDataProvider({ children }) {
         } catch (e) {}
       }
       setUser(initialUser);
-
-      api.get('/wishlist')
-        .then(res => {
-          if (res.data.success) {
-            setWishlist(res.data.data.map(w => w.property_id));
-          }
-        })
-        .catch(() => {
-          localStorage.removeItem('lead_token');
-          localStorage.removeItem('lead_data');
-          setUser(null);
-        });
+      fetchWishlist();
     }
-  }, []);
+  }, [fetchWishlist]);
 
   // Fetch admin data when adminUser is set
   const refreshAdminData = useCallback(() => {
@@ -312,18 +337,23 @@ export function AppDataProvider({ children }) {
   }, [adminUser, refreshAdminData]);
 
   // Wishlist toggle
-  const toggleWishlist = (id) => {
+  const toggleWishlist = async (id) => {
+    const leadToken = localStorage.getItem('lead_token');
+    if (!leadToken) {
+      setPendingWishlistId(id);
+      setShowAuthModal(true);
+      return;
+    }
+
     const isSaved = wishlist.includes(id);
     setWishlist(prev => isSaved ? prev.filter(pId => pId !== id) : [...prev, id]);
 
-    if (localStorage.getItem('lead_token')) {
-      api.post('/wishlist/toggle', { property_id: id }).catch(err => {
-        console.error('Failed to toggle wishlist', err);
-        setWishlist(prev => !isSaved ? prev.filter(pId => pId !== id) : [...prev, id]);
-      });
-    } else {
-      setShowAuthModal(true);
-      setWishlist(prev => isSaved ? prev.filter(pId => pId !== id) : [...prev, id]);
+    try {
+      await api.post('/wishlist/toggle', { property_id: id });
+    } catch (err) {
+      console.error('Failed to toggle wishlist', err);
+      // Revert optimistic update
+      setWishlist(prev => !isSaved ? prev.filter(pId => pId !== id) : [...prev, id]);
     }
   };
 
@@ -646,7 +676,8 @@ export function AppDataProvider({ children }) {
       docs, setDocs,
       remarks, setRemarks,
       accessLog, setAccessLog,
-      wishlist, toggleWishlist,
+      wishlist, toggleWishlist, fetchWishlist, clearWishlist,
+      pendingWishlistId, setPendingWishlistId,
       user, setUser,
       showAuthModal, setShowAuthModal,
       adminUser, setAdminUser,

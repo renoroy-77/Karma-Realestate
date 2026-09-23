@@ -46,8 +46,10 @@ Route::post('/otp/verify', [OtpController::class, 'verify']);
 
 // Lead Site Visit Booking & Wishlists (Requires Verified Lead Token)
 Route::post('/site-visits', [SiteVisitController::class, 'store'])->middleware('lead.token:required');
+Route::post('/site-visit', [SiteVisitController::class, 'store'])->middleware('lead.token:required');
 Route::get('/site-visits/my', [SiteVisitController::class, 'myVisits'])->middleware('lead.token:required');
 Route::post('/wishlist', [WishlistController::class, 'toggle'])->middleware('lead.token:required');
+Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->middleware('lead.token:required');
 Route::get('/wishlist', [WishlistController::class, 'myWishlist'])->middleware('lead.token:required');
 Route::get('/wishlist/my', [WishlistController::class, 'myWishlist'])->middleware('lead.token:required');
 

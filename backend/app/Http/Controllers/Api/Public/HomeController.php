@@ -59,7 +59,7 @@ class HomeController extends Controller
 
         // 4. Testimonials
         $testimonials = Testimonial::where('is_active', true)
-            ->latest()
+            ->orderBy('id', 'desc')
             ->take(8)
             ->get(['id', 'client_name', 'client_role', 'content', 'rating', 'photo_url', 'bg_image']);
 
