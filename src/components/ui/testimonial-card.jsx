@@ -204,11 +204,37 @@ export default function ClientsSectionDemo() {
   // Mobile vertical swipe
   const [mobileTouchY, setMobileTouchY] = React.useState({ start: 0, end: 0 });
 
-  // Fetch testimonials from backend API if available
+  // Fetch testimonials from backend API (MySQL database)
   React.useEffect(() => {
-    api.get('/home')
-      .then(res => {
-        if (res.data.success && res.data.data?.testimonials?.length > 0) {
+    let isMounted = true;
+
+    const loadTestimonials = async () => {
+      try {
+        let items = null;
+
+        // 1. Try dedicated public testimonials endpoint first
+        try {
+          const res = await api.get('/testimonials');
+          if (res.data?.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
+            items = res.data.data;
+          }
+        } catch {
+          // fallback to /home
+        }
+
+        // 2. Fallback to /home composite endpoint
+        if (!items) {
+          try {
+            const homeRes = await api.get('/home');
+            if (homeRes.data?.success && Array.isArray(homeRes.data.data?.testimonials) && homeRes.data.data.testimonials.length > 0) {
+              items = homeRes.data.data.testimonials;
+            }
+          } catch {
+            // ignore
+          }
+        }
+
+        if (items && items.length > 0 && isMounted) {
           const avatarList = [
             'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80',
             'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80',
@@ -219,7 +245,7 @@ export default function ClientsSectionDemo() {
             'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&auto=format&fit=crop&q=80',
             'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&auto=format&fit=crop&q=80'
           ];
-          const mapped = res.data.data.testimonials.map((t, idx) => ({
+          const mapped = items.map((t, idx) => ({
             id: t.id || idx + 1,
             name: t.client_name,
             title: t.client_role,
@@ -228,19 +254,21 @@ export default function ClientsSectionDemo() {
             avatarSrc: t.photo_url || avatarList[idx % avatarList.length],
             bgImage: t.bg_image || (idx === 0 ? DEFAULT_TESTIMONIALS[0].bgImage : null),
             verified: true,
-            location: t.location || "Kannur"
+            location: t.location || (t.client_role && t.client_role.includes(',') ? t.client_role.split(',').pop().trim() : "Kannur")
           }));
 
-          if (mapped.length < 5) {
-            const existingNames = new Set(mapped.map(m => m.name));
-            const extra = DEFAULT_TESTIMONIALS.filter(d => !existingNames.has(d.name));
-            setTestimonials([...mapped, ...extra]);
-          } else {
-            setTestimonials(mapped);
-          }
+          setTestimonials(mapped);
         }
-      })
-      .catch(() => {});
+      } catch (err) {
+        console.error('Failed to load testimonials:', err);
+      }
+    };
+
+    loadTestimonials();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const total = testimonials.length;
@@ -322,7 +350,7 @@ export default function ClientsSectionDemo() {
         {/* ============================================================ */}
         {/* DESKTOP / TABLET VIEW (md and up): 3-Card Horizontal Carousel */}
         {/* ============================================================ */}
-        <div className="hidden md:block">
+        <div className="testimonial-desktop-view hidden md:block">
           {/* Top Header & Carousel Controls */}
           <div className="flex items-end justify-between mb-10 lg:mb-12 gap-5">
             <div>
@@ -420,7 +448,7 @@ export default function ClientsSectionDemo() {
         {/* ============================================================ */}
         {/* MOBILE VIEW (under md): Vertical Carousel & Card Stack Deck  */}
         {/* ============================================================ */}
-        <div className="block md:hidden">
+        <div className="testimonial-mobile-view block md:hidden">
           {/* Mobile Header */}
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -529,8 +557,22 @@ export default function ClientsSectionDemo() {
 
       </div>
 
-      {/* Inline Keyframes for smooth slide transitions */}
+      {/* Inline Keyframes and Responsive Visibility */}
       <style>{`
+        .testimonial-desktop-view {
+          display: block !important;
+        }
+        .testimonial-mobile-view {
+          display: none !important;
+        }
+        @media (max-width: 767px) {
+          .testimonial-desktop-view {
+            display: none !important;
+          }
+          .testimonial-mobile-view {
+            display: block !important;
+          }
+        }
         @keyframes fadeInRight {
           from {
             opacity: 0.4;

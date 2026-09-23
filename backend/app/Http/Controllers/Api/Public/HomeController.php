@@ -60,7 +60,7 @@ class HomeController extends Controller
         // 4. Testimonials
         $testimonials = Testimonial::where('is_active', true)
             ->orderBy('id', 'desc')
-            ->take(8)
+            ->take(25)
             ->get(['id', 'client_name', 'client_role', 'content', 'rating', 'photo_url', 'bg_image']);
 
         return response()->json([
