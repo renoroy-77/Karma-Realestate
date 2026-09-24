@@ -58,7 +58,7 @@ class PropertyMediaController extends Controller
             $relPath = "{$relFolder}/{$filename}";
             Storage::disk('public')->put($relPath, file_get_contents($videoFile->getRealPath()));
 
-            $videoUrl = Storage::disk('public')->url($relPath);
+            $videoUrl = "/storage/{$relPath}";
 
             $media = PropertyMedia::create([
                 'property_id' => $property->id,
@@ -177,7 +177,7 @@ class PropertyMediaController extends Controller
         $relPath = "{$relFolder}/{$filename}";
         Storage::disk('public')->put($relPath, file_get_contents($file->getRealPath()));
 
-        $brochureUrl = Storage::disk('public')->url($relPath);
+        $brochureUrl = "/storage/{$relPath}";
         $property->update(['brochure_url' => $brochureUrl]);
 
         return response()->json([

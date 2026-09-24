@@ -37,7 +37,7 @@ class StorePropertyRequest extends FormRequest
             'address_line' => 'nullable|string|max:500',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
-            'virtual_tour_url' => 'nullable|url|max:500',
+            'virtual_tour_url' => 'nullable|string|max:500',
             'brochure_url' => 'nullable|string|max:500',
             'rera_number' => 'nullable|string|max:100',
             'land_classification' => 'nullable|string|max:100',

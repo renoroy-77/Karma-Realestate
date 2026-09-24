@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -258,5 +259,37 @@ class Property extends Model
         $query->orderByDesc('id'); // stable pagination ordering tiebreaker
 
         return $query;
+    }
+
+    protected function brochureUrl(): Attribute
+    {
+        return Attribute::make(
+            get: function ($value) {
+                if (empty($value)) {
+                    return null;
+                }
+                if (str_contains($value, '/storage/')) {
+                    $parts = explode('/storage/', $value);
+                    return '/storage/' . end($parts);
+                }
+                return $value;
+            },
+        );
+    }
+
+    protected function virtualTourUrl(): Attribute
+    {
+        return Attribute::make(
+            get: function ($value) {
+                if (empty($value)) {
+                    return null;
+                }
+                if (str_contains($value, '/storage/')) {
+                    $parts = explode('/storage/', $value);
+                    return '/storage/' . end($parts);
+                }
+                return $value;
+            },
+        );
     }
 }

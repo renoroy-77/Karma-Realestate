@@ -1,7 +1,7 @@
 import { useContext, useState, useMemo, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { AppDataContext, LOCALITY_COORDS, formatIndianPrice } from '../../context/AppDataContext';
+import { AppDataContext, LOCALITY_COORDS, formatIndianPrice, normalizeMediaUrl } from '../../context/AppDataContext';
 
 const AMENITIES_LIST = [
   'Car Parking', '24/7 Security', 'Power Backup', 'Lift / Elevator', 
@@ -400,11 +400,11 @@ export default function Properties() {
   };
 
   const handleSave = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if (!formData.title?.trim() || formData.price === '' || formData.price === undefined) {
-      setErrorMessage('Please provide a property title and price.');
+      setErrorMessage('Please provide a property title and price in Step 1.');
       setCurrentStep(1);
-      return;
+      return false;
     }
 
     setSaving(true);
@@ -429,10 +429,89 @@ export default function Properties() {
       } else {
         await updateProperty(payload.id, payload, selectedFiles, selectedVideoFile, selectedBrochureFile);
       }
+      setSelectedFiles([]);
+      setFilePreviews([]);
+      setSelectedVideoFile(null);
+      setSelectedBrochureFile(null);
       setShowModal(false);
+      return true;
     } catch (err) {
       console.error(err);
-      setErrorMessage(err.message || 'Failed to save property. Please check the fields.');
+      const msg = err.response?.data?.message || err.message || 'Failed to save property. Please check the fields.';
+      setErrorMessage(msg);
+      toast.error(msg);
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleStepSave = async (nextStepTarget) => {
+    // If title or price are missing on step 1, prompt user and stay on step 1
+    if (!formData.title?.trim() || formData.price === '' || formData.price === undefined) {
+      setErrorMessage('Please enter a property title and price in Step 1 before proceeding.');
+      setCurrentStep(1);
+      return false;
+    }
+
+    setSaving(true);
+    setErrorMessage('');
+
+    const finalLat = formData.lat !== undefined && formData.lat !== '' && !isNaN(Number(formData.lat))
+      ? Number(formData.lat)
+      : (LOCALITY_COORDS[formData.loc]?.lat || 11.8745);
+    const finalLng = formData.lng !== undefined && formData.lng !== '' && !isNaN(Number(formData.lng))
+      ? Number(formData.lng)
+      : (LOCALITY_COORDS[formData.loc]?.lng || 75.3704);
+
+    const payload = {
+      ...formData,
+      lat: finalLat,
+      lng: finalLng
+    };
+
+    try {
+      let savedProp;
+      if (modalMode === 'add') {
+        savedProp = await createProperty(payload, selectedFiles, selectedVideoFile, selectedBrochureFile, { silent: true });
+        setModalMode('edit');
+        setFormData(prev => ({
+          ...prev,
+          id: savedProp.id,
+          slug: savedProp.slug
+        }));
+      } else {
+        savedProp = await updateProperty(payload.id, payload, selectedFiles, selectedVideoFile, selectedBrochureFile, { silent: true });
+      }
+
+      // If files were uploaded, clear pending file state
+      if (selectedFiles.length > 0 || selectedVideoFile || selectedBrochureFile) {
+        setSelectedFiles([]);
+        setFilePreviews([]);
+        setSelectedVideoFile(null);
+        setSelectedBrochureFile(null);
+      }
+
+      if (savedProp?.gallery && savedProp.gallery.length > 0) {
+        const imgs = savedProp.gallery.map(g => normalizeMediaUrl(g.medium_url || g.full_url || g.thumb_url)).filter(Boolean);
+        setFormData(prev => ({
+          ...prev,
+          imgs,
+          media: savedProp.gallery
+        }));
+      }
+
+      toast.success('Changes saved automatically', { duration: 1500 });
+      if (nextStepTarget) {
+        setCurrentStep(nextStepTarget);
+      }
+      return true;
+    } catch (err) {
+      console.error('Step auto-save error:', err);
+      const msg = err.response?.data?.message || err.message || 'Auto-save failed.';
+      setErrorMessage(msg);
+      toast.error(msg);
+      return false;
     } finally {
       setSaving(false);
     }
@@ -580,7 +659,7 @@ export default function Properties() {
                     <input type="checkbox" checked={selectedIds.includes(p.id)} onChange={() => handleSelectOne(p.id)} />
                   </td>
                   <td>
-                    <div className="thumb" style={p.imgs?.[0] ? { backgroundImage: `url(${p.imgs[0]})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}></div>
+                    <div className="thumb" style={p.imgs?.[0] ? { backgroundImage: `url(${normalizeMediaUrl(p.imgs[0])})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}></div>
                   </td>
                   <td className="td-main">
                     <b>{p.title}</b>
@@ -704,7 +783,15 @@ export default function Properties() {
                     <div key={step.id} style={{ display: 'flex', alignItems: 'center', flex: idx === STEPS.length - 1 ? 'none' : 1 }}>
                       <button
                         type="button"
-                        onClick={() => setCurrentStep(step.id)}
+                        onClick={() => {
+                          if (saving) return;
+                          if (step.id === currentStep) return;
+                          if (formData.title && formData.price) {
+                            handleStepSave(step.id);
+                          } else {
+                            setCurrentStep(step.id);
+                          }
+                        }}
                         style={{
                           display: 'flex',
                           alignItems: 'center',
@@ -975,7 +1062,7 @@ export default function Properties() {
                         {/* Thumbnail Strip with Cancel / Remove Button */}
                         {(() => {
                           const existingList = (formData.imgs || []).map((url, idx) => ({
-                            url,
+                            url: normalizeMediaUrl(url),
                             isNew: false,
                             idx
                           }));
@@ -1009,7 +1096,7 @@ export default function Properties() {
                                     }}
                                   >
                                     <img
-                                      src={item.url}
+                                      src={item.isNew ? item.url : normalizeMediaUrl(item.url)}
                                       alt={`Photo ${i + 1}`}
                                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                     />
@@ -1947,11 +2034,49 @@ export default function Properties() {
                     <span>Back</span>
                   </button>
 
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                    {/* Always visible Save Changes button */}
+                    <button
+                      type="button"
+                      onClick={handleSave}
+                      disabled={saving}
+                      style={{
+                        padding: '10px 20px',
+                        borderRadius: 99,
+                        border: '1.5px solid #a7f3d0',
+                        background: '#f0fdf4',
+                        color: '#065f46',
+                        fontSize: 13.5,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        transition: 'all 0.15s'
+                      }}
+                      title="Save all changes and close"
+                    >
+                      {saving ? (
+                        <>
+                          <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <circle cx="12" cy="12" r="10" strokeOpacity="0.25"></circle>
+                            <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round"></path>
+                          </svg>
+                          <span>Saving...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>💾</span>
+                          <span>{modalMode === 'add' ? 'Save & Close' : 'Save Changes'}</span>
+                        </>
+                      )}
+                    </button>
+
                     {currentStep < 5 ? (
                       <button
                         type="button"
-                        onClick={() => setCurrentStep(currentStep + 1)}
+                        onClick={() => handleStepSave(currentStep + 1)}
+                        disabled={saving}
                         style={{
                           padding: '11px 26px',
                           borderRadius: 99,
@@ -1967,8 +2092,20 @@ export default function Properties() {
                           boxShadow: '0 4px 12px rgba(6, 95, 70, 0.25)'
                         }}
                       >
-                        <span>Next</span>
-                        <span>→</span>
+                        {saving ? (
+                          <>
+                            <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <circle cx="12" cy="12" r="10" strokeOpacity="0.25"></circle>
+                              <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round"></path>
+                            </svg>
+                            <span>Saving Step...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Next</span>
+                            <span>→</span>
+                          </>
+                        )}
                       </button>
                     ) : (
                       <button

@@ -102,12 +102,22 @@ export function formatIndianPrice(price, purpose = '') {
   return `₹${val.toLocaleString('en-IN')}${isRental ? ' / mo' : ''}`;
 }
 
+export function normalizeMediaUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  if (url.startsWith('blob:') || url.startsWith('data:')) return url;
+  if (url.includes('/storage/')) {
+    const idx = url.indexOf('/storage/');
+    return url.substring(idx);
+  }
+  return url;
+}
+
 export function mapBackendPropToFrontend(p) {
   let images = [];
   if (p.gallery && p.gallery.length > 0) {
-    images = p.gallery.map(g => g.medium_url || g.full_url || g.thumb_url).filter(Boolean);
+    images = p.gallery.map(g => normalizeMediaUrl(g.medium_url || g.full_url || g.thumb_url)).filter(Boolean);
   } else if (p.cover_photo && (p.cover_photo.medium_url || p.cover_photo.full_url || p.cover_photo.thumb_url)) {
-    images = [p.cover_photo.medium_url || p.cover_photo.full_url || p.cover_photo.thumb_url];
+    images = [normalizeMediaUrl(p.cover_photo.medium_url || p.cover_photo.full_url || p.cover_photo.thumb_url)];
   }
 
   const typeMap = { land: 'Plot', flat: 'Apartment', house: 'House', commercial: 'Commercial', warehouse: 'Commercial' };
@@ -143,11 +153,17 @@ export function mapBackendPropToFrontend(p) {
     cons: Array.isArray(p.cons) ? p.cons : (typeof p.cons === 'string' ? JSON.parse(p.cons || '[]') : []),
     amenities: Array.isArray(p.amenities) ? p.amenities : [],
     desc: p.description || '',
-    tour: p.virtual_tour_url || null,
-    videoUrl: p.video_url || (Array.isArray(p.gallery) ? p.gallery.find(m => m.media_type === 'video')?.video_url : null) || p.virtual_tour_url || null,
-    brochureUrl: p.brochure_url || null,
+    tour: normalizeMediaUrl(p.virtual_tour_url || null),
+    videoUrl: normalizeMediaUrl(p.video_url || (Array.isArray(p.gallery) ? p.gallery.find(m => m.media_type === 'video')?.video_url : null) || p.virtual_tour_url || null),
+    brochureUrl: normalizeMediaUrl(p.brochure_url || null),
     slug: p.slug,
-    media: Array.isArray(p.gallery) ? p.gallery : (p.media || []),
+    media: Array.isArray(p.gallery) ? p.gallery.map(m => ({
+      ...m,
+      thumb_url: normalizeMediaUrl(m.thumb_url),
+      medium_url: normalizeMediaUrl(m.medium_url),
+      full_url: normalizeMediaUrl(m.full_url),
+      video_url: normalizeMediaUrl(m.video_url)
+    })) : (p.media || []),
     ownerName: p.owner_details?.name || p.contact_name || p.owner_name || 'KARMA Official',
     ownerPhone: p.owner_details?.phone || p.contact_phone || p.owner_phone || '+91 99957 97450',
     ownerEmail: p.owner_details?.email || p.contact_email || p.owner_email || 'hello@karmarealestate.in',
@@ -370,7 +386,7 @@ export function AppDataProvider({ children }) {
   };
 
   // Property CRUD & Mutations
-  const createProperty = async (propertyData, photoFiles = [], videoFile = null, brochureFile = null) => {
+  const createProperty = async (propertyData, photoFiles = [], videoFile = null, brochureFile = null, options = {}) => {
     const payload = mapFrontendPropToBackend(propertyData);
     const res = await api.post('/admin/properties', payload);
     if (res.data.success) {
@@ -417,14 +433,25 @@ export function AppDataProvider({ children }) {
           console.error('Brochure PDF upload failed', e);
         }
       }
+      let freshData = created;
+      try {
+        const freshRes = await api.get(`/admin/properties/${created.id}`);
+        if (freshRes.data.success && freshRes.data.data) {
+          freshData = freshRes.data.data;
+        }
+      } catch {
+        // fallback
+      }
       refreshAdminData();
-      toast.success('Property created successfully!');
-      return created;
+      if (!options?.silent) {
+        toast.success('Property created successfully!');
+      }
+      return freshData;
     }
     throw new Error(res.data.message || 'Failed to create property');
   };
 
-  const updateProperty = async (id, propertyData, photoFiles = [], videoFile = null, brochureFile = null) => {
+  const updateProperty = async (id, propertyData, photoFiles = [], videoFile = null, brochureFile = null, options = {}) => {
     const payload = mapFrontendPropToBackend(propertyData);
     const res = await api.put(`/admin/properties/${id}`, payload);
     if (res.data.success) {
@@ -435,6 +462,9 @@ export function AppDataProvider({ children }) {
           const fd = new FormData();
           fd.append('file', file);
           fd.append('media_type', 'photo');
+          if (i === 0 && (!propertyData.imgs || propertyData.imgs.length === 0)) {
+            fd.append('is_cover', '1');
+          }
           try {
             await api.post(`/admin/properties/${id}/media`, fd, {
               headers: { 'Content-Type': 'multipart/form-data' }
@@ -467,9 +497,20 @@ export function AppDataProvider({ children }) {
           console.error('Brochure PDF upload failed', e);
         }
       }
+      let freshData = updated;
+      try {
+        const freshRes = await api.get(`/admin/properties/${id}`);
+        if (freshRes.data.success && freshRes.data.data) {
+          freshData = freshRes.data.data;
+        }
+      } catch {
+        // fallback
+      }
       refreshAdminData();
-      toast.success('Property updated successfully!');
-      return updated;
+      if (!options?.silent) {
+        toast.success('Property updated successfully!');
+      }
+      return freshData;
     }
     throw new Error(res.data.message || 'Failed to update property');
   };

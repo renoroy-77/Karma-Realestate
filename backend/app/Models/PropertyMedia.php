@@ -57,24 +57,44 @@ class PropertyMedia extends Model
         return $this->belongsTo(Property::class);
     }
 
+    private function formatMediaUrl(?string $path): ?string
+    {
+        if (empty($path)) {
+            return null;
+        }
+
+        // If it's an external URL (like Unsplash) that doesn't point to our local storage
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            if (str_contains($path, '/storage/')) {
+                $parts = explode('/storage/', $path);
+                return '/storage/' . end($parts);
+            }
+            return $path;
+        }
+
+        // Clean relative storage path
+        $clean = ltrim(preg_replace('#^/?storage/#', '', $path), '/');
+        return '/storage/' . $clean;
+    }
+
     protected function thumbUrl(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->thumb_path ? (str_starts_with($this->thumb_path, 'http') ? $this->thumb_path : Storage::disk('public')->url($this->thumb_path)) : null,
+            get: fn () => $this->formatMediaUrl($this->thumb_path),
         );
     }
 
     protected function mediumUrl(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->medium_path ? (str_starts_with($this->medium_path, 'http') ? $this->medium_path : Storage::disk('public')->url($this->medium_path)) : null,
+            get: fn () => $this->formatMediaUrl($this->medium_path),
         );
     }
 
     protected function fullUrl(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->full_path ? (str_starts_with($this->full_path, 'http') ? $this->full_path : Storage::disk('public')->url($this->full_path)) : null,
+            get: fn () => $this->formatMediaUrl($this->full_path),
         );
     }
 
@@ -83,10 +103,10 @@ class PropertyMedia extends Model
         return Attribute::make(
             get: function ($value) {
                 if ($value) {
-                    return str_starts_with($value, 'http') ? $value : Storage::disk('public')->url($value);
+                    return $this->formatMediaUrl($value);
                 }
                 if ($this->original_path && $this->media_type === 'video') {
-                    return str_starts_with($this->original_path, 'http') ? $this->original_path : Storage::disk('public')->url($this->original_path);
+                    return $this->formatMediaUrl($this->original_path);
                 }
 
                 return null;
