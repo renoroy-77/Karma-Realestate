@@ -106,6 +106,41 @@ function Header() {
   const [cooldown, setCooldown] = useState(0);
   const otpRefs = [useRef(), useRef(), useRef(), useRef(), useRef(), useRef()];
 
+  // 1-2 Minute Session Browsing Gate
+  const [isTimeGated, setIsTimeGated] = useState(false);
+
+  useEffect(() => {
+    if (user || localStorage.getItem('lead_token')) {
+      setIsTimeGated(false);
+      return;
+    }
+
+    let sessionStart = sessionStorage.getItem('karma_session_start_time');
+    if (!sessionStart) {
+      sessionStart = Date.now().toString();
+      sessionStorage.setItem('karma_session_start_time', sessionStart);
+    }
+
+    const elapsed = Date.now() - parseInt(sessionStart, 10);
+    // 90 seconds (1.5 min, between 1 and 2 minutes)
+    const TIME_LIMIT_MS = 90 * 1000;
+    const remaining = Math.max(0, TIME_LIMIT_MS - elapsed);
+
+    const triggerGate = () => {
+      if (!user && !localStorage.getItem('lead_token')) {
+        setIsTimeGated(true);
+        setShowAuthModal(true);
+      }
+    };
+
+    if (remaining === 0) {
+      triggerGate();
+    } else {
+      const timer = setTimeout(triggerGate, remaining);
+      return () => clearTimeout(timer);
+    }
+  }, [user, setShowAuthModal]);
+
   // Lock cooldown effect
   useEffect(() => {
     if (cooldown > 0) {
@@ -254,6 +289,7 @@ function Header() {
         
         // Automatically close modal after celebration
         setTimeout(() => {
+          setIsTimeGated(false);
           setShowAuthModal(false);
           setStep(0);
           setOtp(['', '', '', '', '', '']);
@@ -277,6 +313,8 @@ function Header() {
   const handleLogout = () => {
     localStorage.removeItem('lead_token');
     localStorage.removeItem('lead_data');
+    sessionStorage.removeItem('karma_session_start_time');
+    setIsTimeGated(false);
     setUser(null);
     clearWishlist();
     toast.info('Logged out successfully');
@@ -308,7 +346,7 @@ function Header() {
       <header className={`hdr hdr-solid ${isExpanded ? 'hdr-expanded' : ''}`} style={{ position: 'fixed' }}>
         <div className="hdr-in">
           <Link to="/" className="logo" style={{ textDecoration: 'none', zIndex: 2 }}>
-            <KarmaLogo height={44} />
+            <KarmaLogo height={52} />
           </Link>
 
           <div className="hdr-search-container">
@@ -389,7 +427,6 @@ function Header() {
           </div>
 
           <nav className="hdr-nav" style={{ zIndex: 2 }}>
-            <Link to="/" className="nav-link">Home</Link>
             <Link to="/properties" className="nav-link">Properties</Link>
             <Link to="/about" className="nav-link">About Us</Link>
             <Link to="/wishlist" className="nav-link">Wishlist</Link>
@@ -429,7 +466,7 @@ function Header() {
       )}
       <div className={`pub-side ${showMobileMenu ? 'open' : ''}`}>
         <div className="pub-side-hd">
-          <KarmaLogo height={38} />
+          <KarmaLogo height={44} />
           <button className="pub-side-close" onClick={() => setShowMobileMenu(false)}>✕</button>
         </div>
         <nav className="pub-side-nav">
@@ -472,13 +509,13 @@ function Header() {
                 Get your property listed on KARMA Real Estate and reach thousands of potential buyers and tenants. Contact our experts today!
               </p>
               <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
-                <a href="https://wa.me/919995797450?text=Hello%20KARMA%20Real%20Estate,%20I%20would%20like%20to%20list%20my%20property." target="_blank" rel="noreferrer" style={{background: '#25D366', color: '#fff', fontWeight: 600, padding: '12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textDecoration: 'none', border: 'none', cursor: 'pointer', transition: 'filter 0.2s'}} onMouseOver={e => e.currentTarget.style.filter = 'brightness(0.95)'} onMouseOut={e => e.currentTarget.style.filter = 'none'}>
+                <a href="https://wa.me/919526300003?text=Hello%20KARMA%20Real%20Estate,%20I%20would%20like%20to%20list%20my%20property." target="_blank" rel="noreferrer" style={{background: '#25D366', color: '#fff', fontWeight: 600, padding: '12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textDecoration: 'none', border: 'none', cursor: 'pointer', transition: 'filter 0.2s'}} onMouseOver={e => e.currentTarget.style.filter = 'brightness(0.95)'} onMouseOut={e => e.currentTarget.style.filter = 'none'}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12.01 2.01a10 10 0 0 0-8.52 15.27L2 22l4.87-1.46a10 10 0 1 0 5.14-18.53zm0 18A8 8 0 0 1 7.2 18.9l-.35-.2-3.6 1.08 1.1-3.5-.2-.36A8 8 0 1 1 12.01 20zm4.27-5.83c-.23-.12-1.38-.68-1.59-.76-.22-.08-.38-.12-.54.12s-.6 .76-.74.92c-.14.16-.27.18-.5.06a6.56 6.56 0 0 1-1.92-1.18 7.2 7.2 0 0 1-1.33-1.66c-.14-.24-.01-.37.1-.49.1-.11.23-.27.35-.4a1.6 1.6 0 0 0 .15-.25c.08-.16.04-.3-.02-.42s-.54-1.3-.74-1.78c-.2-.47-.4-.4-.54-.41-.14 0-.3-.01-.46-.01a.89.89 0 0 0-.64.3c-.22.24-.85.83-.85 2.02s.87 2.34.99 2.5c.12.16 1.7 2.6 4.12 3.64 1.48.64 2.15.7 2.94.59.56-.08 1.38-.56 1.57-1.1.2-.54.2-.1.14-.11z"/></svg>
                   Chat on WhatsApp
                 </a>
-                <a href="tel:+919995797450" style={{background: 'var(--blue)', color: '#fff', fontWeight: 600, padding: '12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textDecoration: 'none', border: 'none', cursor: 'pointer', transition: 'background 0.2s'}} onMouseOver={e => e.currentTarget.style.background = 'var(--blue-d)'} onMouseOut={e => e.currentTarget.style.background = 'var(--blue)'}>
+                <a href="tel:+919526300003" style={{background: 'var(--blue)', color: '#fff', fontWeight: 600, padding: '12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textDecoration: 'none', border: 'none', cursor: 'pointer', transition: 'background 0.2s'}} onMouseOver={e => e.currentTarget.style.background = 'var(--blue-d)'} onMouseOut={e => e.currentTarget.style.background = 'var(--blue)'}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                  Call +91 99957 97450
+                  Call +91 95263 00003
                 </a>
               </div>
             </div>
@@ -487,23 +524,34 @@ function Header() {
       )}
 
       {showAuthModal && (
-        <div className="auth-overlay" onClick={() => setShowAuthModal(false)}>
+        <div 
+          className="auth-overlay" 
+          onClick={() => {
+            if (isTimeGated) {
+              toast.info('Please sign in or verify to continue browsing KARMA Real Estate.');
+            } else {
+              setShowAuthModal(false);
+            }
+          }}
+        >
           <div className="auth-modal" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
             <div className="auth-modal-header">
               <div className="auth-badge">
                 <span className="auth-pulse-dot"></span>
-                <span>Karma Verified Access</span>
+                <span>{isTimeGated ? 'Verification Required' : 'Karma Verified Access'}</span>
               </div>
-              <button 
-                className="auth-close-btn" 
-                title="Close"
-                onClick={() => { setShowAuthModal(false); setTimeout(() => setStep(0), 300); }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
+              {!isTimeGated && (
+                <button 
+                  className="auth-close-btn" 
+                  title="Close"
+                  onClick={() => { setShowAuthModal(false); setTimeout(() => setStep(0), 300); }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              )}
             </div>
             
             <div className="auth-modal-body">
@@ -516,8 +564,8 @@ function Header() {
                         <path d="m9 12 2 2 4-4"/>
                       </svg>
                     </div>
-                    <h3>Unlock Exclusive Property Details</h3>
-                    <p>Verify your details once to unlock exact GPS coordinates, verified seller contacts, and honest pros & cons.</p>
+                    <h3>{isTimeGated ? 'Sign in to Continue Browsing' : 'Unlock Exclusive Property Details'}</h3>
+                    <p>{isTimeGated ? 'You have been exploring properties on KARMA. Please verify your mobile number once to continue accessing all listings, exact locations and contacts.' : 'Verify your details once to unlock exact GPS coordinates, verified seller contacts, and honest pros & cons.'}</p>
                   </div>
 
                   {otpError && (
@@ -835,7 +883,7 @@ export function Footer() {
       <div className="footer-in">
         <div className="f-brand">
           <Link to="/" style={{ textDecoration: 'none' }}>
-            <KarmaLogo height={48} />
+            <KarmaLogo height={56} />
           </Link>
           <p style={{ marginTop: '12px' }}>A Kannur-first property marketplace. Land, houses, flats, warehouses and commercial spaces — for sale, rent and lease.</p>
         </div>
@@ -849,9 +897,9 @@ export function Footer() {
         </div>
         <div><h4>Company</h4><Link to="/about">About KARMA</Link><Link to="/privacy-policy">Privacy Policy</Link><Link to="/about">Contact</Link></div>
         <div><h4>Contact Us</h4>
-          <a style={{ fontWeight: '600', color: 'var(--ink)' }}>Zeeshan Ali / Vijina Velikath</a>
-          <a href="tel:+919995797450" style={{ fontWeight: '600', color: 'var(--ink)' }}>+91 99957 97450</a>
-          <a href="mailto:hello@karmarealestate.in">hello@karmarealestate.in</a>
+          <a style={{ fontWeight: '600', color: 'var(--ink)' }}>Vijina</a>
+          <a href="tel:+919526300003" style={{ fontWeight: '600', color: 'var(--ink)' }}>+91 95263 00003</a>
+          <a href="mailto:karma.realestate84@gmail.com">karma.realestate84@gmail.com</a>
         </div>
       </div>
       <div className="f-bottom">

@@ -2,6 +2,7 @@ import { useRef, useEffect, useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AppDataContext, formatIndianPrice } from '../../context/AppDataContext';
 import { Helmet } from 'react-helmet-async';
+import PurposeBadge from '../../components/ui/PurposeBadge';
 
 function PropertyCard({ p }) {
   const { wishlist, toggleWishlist } = useContext(AppDataContext);
@@ -11,7 +12,7 @@ function PropertyCard({ p }) {
   return (
     <Link to={`/kannur/${p.type.toLowerCase()}/${p.slug || p.id}`} className="pcard">
       <div className="pc-media">
-        <span className="pc-tag">{p.purpose === 'Rent' ? 'For Rent' : 'Verified'}</span>
+        <PurposeBadge purpose={p.purpose} />
         <button
           className="pc-heart"
           onClick={(e) => {

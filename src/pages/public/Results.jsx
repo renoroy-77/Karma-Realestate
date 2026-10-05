@@ -4,6 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { APIProvider, Map, AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
 import { Footer } from '../../components/public/PublicLayout';
+import PurposeBadge from '../../components/ui/PurposeBadge';
 
 function MapCenterController({ center }) {
   const map = useMap();
@@ -33,6 +34,26 @@ function BoundsUpdater({ setMapBounds }) {
   return null;
 }
 
+function MapDismissListener({ onDismiss }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map) return;
+    const l1 = map.addListener('click', () => {
+      onDismiss();
+    });
+    const l2 = map.addListener('dragstart', () => {
+      onDismiss();
+    });
+    return () => {
+      if (window.google && google.maps && google.maps.event) {
+        google.maps.event.removeListener(l1);
+        google.maps.event.removeListener(l2);
+      }
+    };
+  }, [map, onDismiss]);
+  return null;
+}
+
 function PropertyCard({ p }) {
   const { wishlist, toggleWishlist } = useContext(AppDataContext);
   const inWishlist = wishlist.includes(p.id);
@@ -41,6 +62,7 @@ function PropertyCard({ p }) {
   return (
     <Link to={`/kannur/${p.type.toLowerCase()}/${p.slug || p.id}`} className="nq-card">
       <div className="nq-media">
+        <PurposeBadge purpose={p.purpose} />
         <img src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt={p.title} />
         <button
           className="pc-heart"
@@ -50,7 +72,22 @@ function PropertyCard({ p }) {
             toggleWishlist(p.id);
           }}
           aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
-          style={{ position: 'absolute', top: 12, right: 12, zIndex: 3, background: 'rgba(255,255,255,0.9)', borderRadius: '50%', padding: '6px', border: 'none', cursor: 'pointer', display: 'grid', placeItems: 'center' }}
+          style={{ 
+            position: 'absolute', 
+            top: 10, 
+            right: 10, 
+            zIndex: 3, 
+            background: 'rgba(255,255,255,0.92)', 
+            backdropFilter: 'blur(4px)',
+            borderRadius: '50%', 
+            width: 32,
+            height: 32,
+            border: 'none', 
+            cursor: 'pointer', 
+            display: 'grid', 
+            placeItems: 'center',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+          }}
         >
           <svg
             viewBox="0 0 32 32"
@@ -62,37 +99,44 @@ function PropertyCard({ p }) {
             <path d="M16 28c7-4.73 14-10 14-17a6.98 6.98 0 0 0-7-6.94c-2.8 0-5.46 1.4-6.98 3.73C14.54 5.4 11.88 4 9.08 4 5.2 4 2 7.15 2 11.08c0 7 7 12.27 14 17z"></path>
           </svg>
         </button>
-        <div className="nq-rating">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-          <span>{rating}</span>
-        </div>
-        <div className="nq-loc-tag">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-          {p.loc}, Kannur
-        </div>
       </div>
+
       <div className="nq-body">
-        <div className="nq-top">
-          <h3 className="nq-title">{p.title}</h3>
-          <div className="nq-price"><b>{p.priceFormatted || formatIndianPrice(p.price, p.purpose)}</b></div>
+        <div className="nq-top-row">
+          <div className="nq-price">
+            {p.priceFormatted || formatIndianPrice(p.price, p.purpose)}
+          </div>
+          <div className="nq-rating-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <span>{rating}</span>
+          </div>
         </div>
+
+        <h3 className="nq-title" title={p.title}>{p.title}</h3>
+
+        <div className="nq-loc-row">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          <span>{p.loc}, Kannur</span>
+          <span className="nq-type-chip">{p.type}</span>
+        </div>
+
         <div className="nq-meta">
           {p.beds && (
             <span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path></svg>
               {p.beds} Beds
-            </span>
-          )}
-          {(p.area || p.land) && (
-            <span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16v16H4z"/><path d="M4 14h16M14 4v16"/></svg>
-              {p.area || p.land}
             </span>
           )}
           {p.baths && (
             <span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12h20M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8M4 12v-4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4M9 6v6M15 6v6"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12h20M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8M4 12v-4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4M9 6v6M15 6v6"/></svg>
               {p.baths} Baths
+            </span>
+          )}
+          {(p.area || p.land) && (
+            <span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16v16H4z"/><path d="M4 14h16M14 4v16"/></svg>
+              {p.area || p.land}
             </span>
           )}
         </div>
@@ -132,6 +176,31 @@ export default function Results() {
     const handleToggle = () => setShowMobileFilters(prev => !prev);
     window.addEventListener('toggle-filters', handleToggle);
     return () => window.removeEventListener('toggle-filters', handleToggle);
+  }, []);
+
+  const mapContainerRef = useRef(null);
+
+  useEffect(() => {
+    const el = mapContainerRef.current;
+    if (!el) return;
+
+    const handlePointerDown = (e) => {
+      if (
+        e.target.closest('.nq-ref-popup') || 
+        e.target.closest('.nq-marker') || 
+        e.target.closest('.nq-red-pin') || 
+        e.target.closest('.nq-mf-btn-group') || 
+        e.target.closest('.nq-bottom-active-card')
+      ) {
+        return;
+      }
+      setActiveMarker(null);
+    };
+
+    el.addEventListener('pointerdown', handlePointerDown, true);
+    return () => {
+      el.removeEventListener('pointerdown', handlePointerDown, true);
+    };
   }, []);
 
   const availableLocations = useMemo(() => {
@@ -284,7 +353,7 @@ export default function Results() {
         </label>
         
         <label className="nq-search-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h12"/><path d="M6 8h12"/><path d="m6 13 8.5 8"/><path d="M6 13h3"/><path d="M9 13c6.667 0 6.667-10 0-10"/></svg>
           <select value={filterPrice} onChange={e => setFilterPrice(e.target.value)} className="nq-sel">
             <option value="All">Any Price</option>
             <option value="Under 50L">Under ₹50L</option>
@@ -356,15 +425,16 @@ export default function Results() {
           </button>
         </div>
 
-        <div className="res-map nq-map-container">
+        <div 
+          ref={mapContainerRef}
+          className="res-map nq-map-container"
+        >
           <div className="nq-map-float-top">
              <div className="nq-mf-btn-group">
                <button className={`nq-mf-btn ${mapType === 'roadmap' ? 'active' : ''}`} onClick={() => setMapType('roadmap')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> Map</button>
                <button className={`nq-mf-btn ${mapType === 'satellite' ? 'active' : ''}`} onClick={() => setMapType('satellite')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> Satellite</button>
              </div>
           </div>
-          
-
 
           <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}>
             <Map
@@ -375,36 +445,81 @@ export default function Results() {
               disableDefaultUI={true}
               gestureHandling={'greedy'}
               style={{ width: '100%', height: '100%' }}
+              onClick={() => setActiveMarker(null)}
             >
               <BoundsUpdater setMapBounds={setMapBounds} />
+              <MapDismissListener onDismiss={() => setActiveMarker(null)} />
               <MapCenterController center={activeCenter} />
               {sortedProps.map(p => (
                 p.lat && p.lng && (
                   <AdvancedMarker 
                     key={p.id} 
                     position={{ lat: p.lat, lng: p.lng }}
-                    onClick={() => setActiveMarker(p.id === activeMarker ? null : p.id)}
+                    zIndex={activeMarker === p.id ? 9999 : 1}
+                    onClick={(e) => {
+                      if (e && e.domEvent) e.domEvent.stopPropagation();
+                      if (activeMarker !== p.id) {
+                        setActiveMarker(p.id);
+                      }
+                    }}
                   >
                     {activeMarker === p.id ? (
                       <div className="nq-marker-active-wrap" style={{ position: 'relative', zIndex: 50 }}>
                         <svg className="nq-red-pin" width="32" height="32" viewBox="0 0 24 24" fill="#ef4444"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" fill="#fff" /></svg>
                         
-                        <div className="nq-ref-popup">
+                        <div 
+                          className="nq-ref-popup" 
+                          onClick={(e) => e.stopPropagation()}
+                          onPointerDown={(e) => e.stopPropagation()}
+                        >
                           <div className="nq-ref-wedge"></div>
-                          <div className="nq-ref-card">
-                            <div className="nq-ref-img-wrap">
-                              <img src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt={p.title} />
-                              <div className="nq-ref-price-tag">{p.priceFormatted || formatIndianPrice(p.price, p.purpose)}</div>
-                            </div>
-                            <div className="nq-ref-body">
-                              <div className="nq-ref-title">{p.title}</div>
-                              <div className="nq-ref-loc">{p.loc}, Kannur</div>
-                              <div className="nq-ref-specs">
-                                {p.beds && <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path></svg> {p.beds} Beds</span>}
-                                {p.baths && <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12h20M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8M4 12v-4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4M9 6v6M15 6v6"/></svg> {p.baths} Baths</span>}
-                                {p.area && <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16v16H4z"/><path d="M4 14h16M14 4v16"/></svg> {p.area}</span>}
+                          <div style={{ position: 'relative' }}>
+                            <button
+                              type="button"
+                              className="nq-ref-close-btn"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setActiveMarker(null);
+                              }}
+                              title="Close preview"
+                              style={{
+                                position: 'absolute',
+                                top: 8,
+                                right: 8,
+                                zIndex: 12,
+                                width: 26,
+                                height: 26,
+                                borderRadius: '50%',
+                                background: 'rgba(0,0,0,0.65)',
+                                color: '#ffffff',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '12px',
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.25)'
+                              }}
+                            >
+                              ✕
+                            </button>
+                            <Link to={`/kannur/${p.type.toLowerCase()}/${p.slug || p.id}`} className="nq-ref-card" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+                              <div className="nq-ref-img-wrap">
+                                <PurposeBadge purpose={p.purpose} style={{ top: 8, left: 8, padding: '2px 6px', fontSize: '10px' }} />
+                                <img src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt={p.title} />
+                                <div className="nq-ref-price-tag">{p.priceFormatted || formatIndianPrice(p.price, p.purpose)}</div>
                               </div>
-                            </div>
+                              <div className="nq-ref-body">
+                                <div className="nq-ref-title">{p.title}</div>
+                                <div className="nq-ref-loc">{p.loc}, Kannur</div>
+                                <div className="nq-ref-specs">
+                                  {p.beds && <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path></svg> {p.beds} Beds</span>}
+                                  {p.baths && <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12h20M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8M4 12v-4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4M9 6v6M15 6v6"/></svg> {p.baths} Baths</span>}
+                                  {p.area && <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16v16H4z"/><path d="M4 14h16M14 4v16"/></svg> {p.area}</span>}
+                                </div>
+                              </div>
+                            </Link>
                           </div>
                         </div>
                       </div>

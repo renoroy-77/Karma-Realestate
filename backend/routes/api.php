@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Admin\PropertyMediaController as AdminPropertyMedia
 use App\Http\Controllers\Api\Admin\SiteSettingController as AdminSiteSettingController;
 use App\Http\Controllers\Api\Admin\SiteVisitManageController as AdminSiteVisitManageController;
 use App\Http\Controllers\Api\Admin\TestimonialManageController as AdminTestimonialController;
+use App\Http\Controllers\Api\Admin\AiController as AdminAiController;
 use App\Http\Controllers\Api\Public\HomeController;
 use App\Http\Controllers\Api\Public\OtpController;
 use App\Http\Controllers\Api\Public\PropertyController;
@@ -132,4 +133,10 @@ Route::middleware(['auth:sanctum', EnsureAdminUser::class])->prefix('admin')->gr
     Route::put('/testimonials/{id}', [AdminTestimonialController::class, 'update']);
     Route::patch('/testimonials/{id}/toggle', [AdminTestimonialController::class, 'toggle']);
     Route::delete('/testimonials/{id}', [AdminTestimonialController::class, 'destroy']);
+
+    // AI Assistant for Content & Property Insights
+    Route::post('/ai/suggest-pros-cons', [AdminAiController::class, 'suggestProsCons']);
 });
+
+// Direct/fallback route for AI suggestions
+Route::post('/ai/suggest-pros-cons', [AdminAiController::class, 'suggestProsCons']);

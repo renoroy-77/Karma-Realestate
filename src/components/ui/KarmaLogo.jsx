@@ -8,7 +8,7 @@ export default function KarmaLogo({ height = 40, className = '', style = {}, onC
       style={{ 
         display: 'inline-flex', 
         alignItems: 'center', 
-        cursor: onClick ? 'pointer' : 'default',
+        cursor: 'pointer',
         ...style 
       }}
       onClick={onClick}
@@ -22,6 +22,7 @@ export default function KarmaLogo({ height = 40, className = '', style = {}, onC
           width: 'auto',
           objectFit: 'contain', 
           display: 'block',
+          cursor: 'pointer',
           filter: 'drop-shadow(0 1.5px 3px rgba(0, 0, 0, 0.2))'
         }} 
       />

@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet-async';
 import { APIProvider, Map, AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
 import ClientsSectionDemo from '../../components/ui/testimonial-card';
 import api from '../../lib/api';
+import PurposeBadge from '../../components/ui/PurposeBadge';
 
 function MapCenterController({ center, zoom }) {
   const map = useMap();
@@ -16,6 +17,26 @@ function MapCenterController({ center, zoom }) {
       }
     }
   }, [map, center, zoom]);
+  return null;
+}
+
+function MapDismissListener({ onDismiss }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map) return;
+    const l1 = map.addListener('click', () => {
+      onDismiss();
+    });
+    const l2 = map.addListener('dragstart', () => {
+      onDismiss();
+    });
+    return () => {
+      if (window.google && google.maps && google.maps.event) {
+        google.maps.event.removeListener(l1);
+        google.maps.event.removeListener(l2);
+      }
+    };
+  }, [map, onDismiss]);
   return null;
 }
 
@@ -42,7 +63,7 @@ function PropertyCard({ p }) {
   return (
     <Link to={`/kannur/${p.type.toLowerCase()}/${p.slug || p.id}`} className="pcard">
       <div className="pc-media">
-        <span className="pc-tag">{p.purpose === 'Rent' ? 'For Rent' : 'Verified'}</span>
+        <PurposeBadge purpose={p.purpose} />
         <button
           className="pc-heart"
           onClick={(e) => {
@@ -111,6 +132,29 @@ export default function Home() {
   const [activeLoc, setActiveLoc] = useState(null);
   const [mapCenter, setMapCenter] = useState({ lat: 11.8745, lng: 75.3704 });
   const [mapZoom, setMapZoom] = useState(9);
+
+  const mapContainerRef = useRef(null);
+
+  useEffect(() => {
+    const el = mapContainerRef.current;
+    if (!el) return;
+
+    const handlePointerDown = (e) => {
+      if (
+        e.target.closest('.nq-map-popup') || 
+        e.target.closest('.nq-marker') || 
+        e.target.closest('.hr-controls')
+      ) {
+        return;
+      }
+      setActiveMarker(null);
+    };
+
+    el.addEventListener('pointerdown', handlePointerDown, true);
+    return () => {
+      el.removeEventListener('pointerdown', handlePointerDown, true);
+    };
+  }, []);
 
   const locScrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -281,23 +325,7 @@ export default function Home() {
       <section className="hero-split">
         <div className="hero-left">
           <div className="hero-left-content">
-            {cmsSettings.hero_announcement && (
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '6px 14px',
-                borderRadius: 99,
-                background: 'rgba(197, 160, 89, 0.12)',
-                border: '1px solid rgba(197, 160, 89, 0.3)',
-                color: '#A8833E',
-                fontSize: 12.5,
-                fontWeight: 700,
-                marginBottom: 16
-              }}>
-                <span>{cmsSettings.hero_announcement}</span>
-              </div>
-            )}
+
             <h1 className="hero-h1">{cmsSettings.hero_headline}</h1>
             <p className="hero-desc" style={{ marginBottom: '32px' }}>{cmsSettings.hero_subheadline}</p>
 
@@ -438,7 +466,7 @@ export default function Home() {
               <Link to="/results" className="hero-cta-btn" style={{ background: 'var(--blue)', color: '#fff', boxShadow: '0 8px 20px rgba(255, 56, 92, 0.25)' }}>
                 Explore Properties
               </Link>
-              <a href="https://wa.me/919995797450" target="_blank" rel="noreferrer" className="hero-cta-btn" style={{ background: '#25D366', color: '#fff', boxShadow: '0 8px 20px rgba(37, 211, 102, 0.25)' }}>
+              <a href="https://wa.me/919526300003" target="_blank" rel="noreferrer" className="hero-cta-btn" style={{ background: '#25D366', color: '#fff', boxShadow: '0 8px 20px rgba(37, 211, 102, 0.25)' }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12.01 2.01a10 10 0 0 0-8.52 15.27L2 22l4.87-1.46a10 10 0 1 0 5.14-18.53zm0 18A8 8 0 0 1 7.2 18.9l-.35-.2-3.6 1.08 1.1-3.5-.2-.36A8 8 0 1 1 12.01 20zm4.27-5.83c-.23-.12-1.38-.68-1.59-.76-.22-.08-.38-.12-.54.12s-.6 .76-.74.92c-.14.16-.27.18-.5.06a6.56 6.56 0 0 1-1.92-1.18 7.2 7.2 0 0 1-1.33-1.66c-.14-.24-.01-.37.1-.49.1-.11.23-.27.35-.4a1.6 1.6 0 0 0 .15-.25c.08-.16.04-.3-.02-.42s-.54-1.3-.74-1.78c-.2-.47-.4-.4-.54-.41-.14 0-.3-.01-.46-.01a.89.89 0 0 0-.64.3c-.22.24-.85.83-.85 2.02s.87 2.34.99 2.5c.12.16 1.7 2.6 4.12 3.64 1.48.64 2.15.7 2.94.59.56-.08 1.38-.56 1.57-1.1.2-.54.2-.1.14-.11z"/></svg>
                 WhatsApp
               </a>
@@ -446,7 +474,10 @@ export default function Home() {
           </div>
         </div>
         <div className="hero-right">
-          <div className="hr-map">
+          <div 
+            ref={mapContainerRef}
+            className="hr-map"
+          >
             {/* View Mode Toggle Controls */}
             <div className="hr-controls">
               <button
@@ -488,30 +519,74 @@ export default function Home() {
                   disableDefaultUI={true}
                   gestureHandling={'greedy'}
                   style={{ width: '100%', height: '100%' }}
+                  onClick={() => setActiveMarker(null)}
                 >
+                  <MapDismissListener onDismiss={() => setActiveMarker(null)} />
                   <MapCenterController center={mapCenter} zoom={mapZoom} />
                   {props.filter(p => p.lat && p.lng).map(p => (
                     <AdvancedMarker 
                       key={p.id} 
                       position={{ lat: p.lat, lng: p.lng }}
-                      onMouseEnter={() => setActiveMarker(p.id)}
-                      onMouseLeave={() => setActiveMarker(null)}
-                      onClick={() => setActiveMarker(p.id === activeMarker ? null : p.id)}
+                      zIndex={activeMarker === p.id ? 9999 : 1}
+                      onClick={(e) => {
+                        if (e && e.domEvent) e.domEvent.stopPropagation();
+                        if (activeMarker !== p.id) {
+                          setActiveMarker(p.id);
+                        }
+                      }}
                     >
                       <div className={`nq-marker ${activeMarker === p.id ? 'active' : ''}`} style={{ position: 'relative', transform: 'translate(0, -10px)' }}>
                         {p.priceFormatted || formatIndianPrice(p.price, p.purpose)}
                         <div className="nq-marker-caret"></div>
                         
                         {activeMarker === p.id && (
-                          <div className="nq-map-popup">
-                            <img src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt={p.title} />
-                            <div className="nq-mp-info">
-                              <b>{p.title}</b>
-                              <div className="nq-mp-meta">
-                                <span>⭐ 4.8</span>
-                                <strong>{p.priceFormatted || formatIndianPrice(p.price, p.purpose)}</strong>
+                          <div 
+                            className="nq-map-popup" 
+                            onClick={(e) => e.stopPropagation()}
+                            onPointerDown={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setActiveMarker(null);
+                              }}
+                              style={{
+                                position: 'absolute',
+                                top: 6,
+                                right: 6,
+                                zIndex: 10,
+                                width: 22,
+                                height: 22,
+                                borderRadius: '50%',
+                                background: 'rgba(0,0,0,0.65)',
+                                color: '#fff',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '11px',
+                                lineHeight: 1
+                              }}
+                              title="Close"
+                            >
+                              ✕
+                            </button>
+                            <Link to={`/kannur/${p.type?.toLowerCase() || 'property'}/${p.slug || p.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+                              <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                                <PurposeBadge purpose={p.purpose} style={{ top: 8, left: 8, padding: '2px 6px', fontSize: '10px' }} />
+                                <img src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt={p.title} />
                               </div>
-                            </div>
+                              <div className="nq-mp-info">
+                                <b>{p.title}</b>
+                                <div className="nq-mp-meta">
+                                  <span>⭐ 4.8</span>
+                                  <strong>{p.priceFormatted || formatIndianPrice(p.price, p.purpose)}</strong>
+                                </div>
+                              </div>
+                            </Link>
                           </div>
                         )}
                       </div>
@@ -531,12 +606,15 @@ export default function Home() {
                     to={`/kannur/${p.type?.toLowerCase() || 'property'}/${p.slug || p.id}`}
                     className="hr-list-card"
                   >
-                    <img
-                      src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'}
-                      alt={p.title}
-                      className="hr-list-img"
-                      loading="lazy"
-                    />
+                    <div style={{ position: 'relative', flexShrink: 0 }}>
+                      <PurposeBadge purpose={p.purpose} style={{ top: 6, left: 6, padding: '2px 5px', fontSize: '9.5px' }} />
+                      <img
+                        src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'}
+                        alt={p.title}
+                        className="hr-list-img"
+                        loading="lazy"
+                      />
+                    </div>
                     <div className="hr-list-info">
                       <div>
                         <div className="hr-list-name">{p.title || `${p.type} in ${p.loc}`}</div>

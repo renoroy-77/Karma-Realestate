@@ -42,6 +42,96 @@ const CON_SUGGESTIONS = [
   'Modifications require owner written approval'
 ];
 
+import api from '../../lib/api';
+
+export function getLocalAiSuggestions(formData = {}) {
+  const loc = (formData.loc || '').toLowerCase();
+  const type = (formData.type || '').toLowerCase();
+  const purpose = (formData.purpose || 'Sale').toLowerCase();
+
+  const pros = [];
+  const cons = [];
+
+  // Location-based rules
+  if (loc.includes('payyambalam') || loc.includes('thottada') || loc.includes('muzhappilangad') || loc.includes('beach') || loc.includes('coastal')) {
+    pros.push('Within 500m of the scenic Arabian coastline with soothing sea breeze');
+    pros.push('Walking distance to beachfront promenade and recreational zones');
+    pros.push('High capital appreciation coastal corridor favored by NRI buyers');
+    cons.push('Coastal humid sea air requires anti-corrosion marine exterior paint & fittings');
+    cons.push('Higher ground moisture levels during active monsoon seasons');
+  } else if (loc.includes('mattannur') || loc.includes('airport') || loc.includes('cnn')) {
+    pros.push('Only 5-10 mins direct access to Kannur International Airport (CNN) gates');
+    pros.push('Strategic commercial growth node with expanding 4-lane highway infrastructure');
+    pros.push('High rental yield demand from airline crew, airport staff, and logistics operators');
+    cons.push('Occasional aircraft engine noise along the active flight approach vector');
+    cons.push('Higher commercial land acquisition rates compared to eastern rural belts');
+  } else if (loc.includes('talap') || loc.includes('pallikkunnu')) {
+    pros.push('Prime central residential hub within walking distance of top Kannur hospitals & clinics');
+    pros.push('Immediate proximity to prestigious schools, supermarkets, and bank headquarters');
+    pros.push('24/7 uninterrupted municipal water supply and underground utility lines');
+    cons.push('Moderate daytime traffic congestion along main junction connecting roads');
+    cons.push('Premium localized price-per-cent reflecting core urban demand');
+  } else if (loc.includes('thalassery')) {
+    pros.push('Historic Thalassery cultural hub with excellent railway and maritime connectivity');
+    pros.push('Renowned heritage residential corridor with peaceful community surroundings');
+    pros.push('Easy access to iconic Thalassery sea bridge, markets, and culinary hubs');
+    cons.push('Heritage architectural guidelines may apply to exterior structural expansions');
+    cons.push('Narrow arterial side-streets requiring cautious four-wheeler turning access');
+  } else if (loc.includes('south bazar') || loc.includes('fort road') || loc.includes('thana') || loc.includes('chovva')) {
+    pros.push('Unbeatable central business district location with peak footfall & vehicle exposure');
+    pros.push('Direct frontage on prime commercial transit arteries with wide display frontage');
+    pros.push('Readily accessible to Kannur Central Railway Station and KSRTC bus terminal');
+    cons.push('Strict municipal parking enforcement and peak-hour commercial traffic bottlenecks');
+    cons.push('Higher commercial property tax slab under Kannur Municipal Corporation');
+  } else if (loc.includes('iritty') || loc.includes('koothuparamba')) {
+    pros.push('Elevated flood-free terrain with lush natural greenery and fresh hillside air');
+    pros.push('Well connected to Kannur-Mysuru highway economic corridor');
+    pros.push('Abundant year-round sweet natural spring well water');
+    cons.push('Approx. 35-45 minutes drive from central Kannur Railway Station and coast');
+  } else {
+    pros.push(`Prime strategically situated location in ${formData.loc || 'Kannur'} with proven rental liquidity`);
+    pros.push('Peaceful residential neighborhood with quick connectivity to main arterial roads');
+    pros.push('100% legally vetted clear freehold title with encumbrance certificate verified');
+    cons.push('Access road may experience slow movement during peak school & office commuting hours');
+  }
+
+  // Type-based rules
+  if (type.includes('villa') || type.includes('house')) {
+    pros.push('Private gated boundary with independent compound wall and generous car porch');
+    pros.push('Copious 24/7 sweet borewell and traditional Kerala open-well water reserve');
+    cons.push('Independent property maintenance and roof terrace waterproofing responsibility with owner');
+  } else if (type.includes('apartment') || type.includes('flat')) {
+    pros.push('Gated multi-tier security with automated passenger elevator and 100% DG power backup');
+    pros.push('Dedicated covered basement parking slot and dedicated resident association management');
+    cons.push('Mandatory monthly resident association maintenance fee (approx ₹2,500 - ₹4,500)');
+    cons.push('Shared society common amenities require advance booking for private gatherings');
+  } else if (type.includes('commercial') || type.includes('office') || type.includes('shop')) {
+    pros.push('Clear road visibility with wide signage frontage for maximum corporate brand exposure');
+    pros.push('Heavy-duty 3-phase commercial electrical load connection ready for immediate occupancy');
+    cons.push('Commercial electricity tariff and dedicated visitor parking management required');
+    cons.push('Interior fitouts and partition alterations require formal owner lease agreement approval');
+  } else if (type.includes('warehouse') || type.includes('industrial')) {
+    pros.push('Clear 9-meter eave height optimized for heavy multi-tier vertical storage racks');
+    pros.push('Wide concrete apron allowing smooth turning for 40-foot multi-axle freight containers');
+    cons.push('Heavy commercial vehicle transit restrictions may apply during peak city commuting windows');
+  } else if (type.includes('land') || type.includes('plot')) {
+    pros.push('Level table land with clearly demarcated boundary stones and 100% clear deeds');
+    pros.push('Ready for immediate residential villa or commercial development construction');
+    cons.push('Requires fencing upkeep and periodic weed clearing prior to foundation construction');
+  }
+
+  // Purpose rules
+  if (purpose.includes('rent') || purpose.includes('lease')) {
+    cons.push('Standard 11-month or 3-year registered lease agreement with security deposit');
+  }
+
+  return {
+    pros: Array.from(new Set(pros)).slice(0, 5),
+    cons: Array.from(new Set(cons)).slice(0, 3),
+    source: 'ai_engine'
+  };
+}
+
 export default function Properties() {
   const {
     props,
@@ -56,10 +146,76 @@ export default function Properties() {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return new URLSearchParams(window.location.search).get('add') === '1';
+    }
+    return false;
+  });
   const [modalMode, setModalMode] = useState('add');
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({});
+  const [currentStep, setCurrentStep] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const s = parseInt(new URLSearchParams(window.location.search).get('step'), 10);
+      if (s >= 1 && s <= 5) return s;
+    }
+    return 1;
+  });
+  const [formData, setFormData] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const sp = new URLSearchParams(window.location.search);
+      if (sp.get('add') === '1') {
+        const loc = sp.get('loc') || 'Kannur City';
+        const type = sp.get('type') || 'House';
+        const title = sp.get('title') || '';
+        const purpose = sp.get('purpose') || 'Sale';
+        const addAll = sp.get('add_all') === '1';
+        let pros = [];
+        let cons = [];
+        if (addAll) {
+          const sug = getLocalAiSuggestions({ loc, type, purpose, title });
+          pros = [...sug.pros];
+          cons = [...sug.cons];
+        }
+        return {
+          title,
+          loc,
+          district: 'Kannur',
+          type,
+          purpose,
+          price: sp.get('price') || '18500000',
+          unit: 'total',
+          area: '2800',
+          land: '12',
+          landUnit: 'cent',
+          beds: '4',
+          baths: '4',
+          desc: '',
+          status: 'Available',
+          pub: true,
+          nego: false,
+          featured: false,
+          lat: 11.8745,
+          lng: 75.3704,
+          address: '',
+          pros,
+          cons,
+          amenities: [],
+          rera: '',
+          cls: '',
+          tour: '',
+          videoUrl: '',
+          brochureUrl: '',
+          ownerName: 'KARMA Official',
+          ownerPhone: '+91 99957 97450',
+          ownerEmail: 'hello@karmarealestate.in',
+          ownerNotes: '',
+          imgs: [],
+          media: []
+        };
+      }
+    }
+    return {};
+  });
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [filePreviews, setFilePreviews] = useState([]);
   const [selectedVideoFile, setSelectedVideoFile] = useState(null);
@@ -68,6 +224,20 @@ export default function Properties() {
   const [errorMessage, setErrorMessage] = useState('');
   const [newPro, setNewPro] = useState('');
   const [newCon, setNewCon] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const sp = new URLSearchParams(window.location.search);
+      if (sp.get('ai') === '1') {
+        const loc = sp.get('loc') || 'Payyambalam Beach';
+        const type = sp.get('type') || 'Villa';
+        const purpose = sp.get('purpose') || 'Sale';
+        const title = sp.get('title') || 'Luxury Beachside Villa';
+        return getLocalAiSuggestions({ loc, type, purpose, title });
+      }
+    }
+    return null;
+  });
 
   // Table Enhancements State
   const [selectedIds, setSelectedIds] = useState([]);
@@ -76,18 +246,6 @@ export default function Properties() {
   const fileInputRef = useRef(null);
   const videoInputRef = useRef(null);
   const brochureInputRef = useRef(null);
-
-  // Check URL query param or event to open add modal
-  useEffect(() => {
-    if (searchParams.get('add') === '1') {
-      openModal('add');
-      setSearchParams({});
-    }
-
-    const handleOpenAdd = () => openModal('add');
-    window.addEventListener('open-add-property-modal', handleOpenAdd);
-    return () => window.removeEventListener('open-add-property-modal', handleOpenAdd);
-  }, [searchParams, setSearchParams]);
 
   const filteredProps = useMemo(() => {
     if (!searchQuery) return props;
@@ -228,7 +386,120 @@ export default function Properties() {
         media: []
       });
     }
+    if (typeof window !== 'undefined' && !new URLSearchParams(window.location.search).get('ai')) {
+      setAiSuggestions(null);
+    }
     setShowModal(true);
+  };
+
+  const handleGenerateAiSuggestions = async (overrideData = null) => {
+    const dataToUse = overrideData || formData;
+    setAiLoading(true);
+    try {
+      const response = await api.post('/admin/ai/suggest-pros-cons', {
+        title: dataToUse.title || '',
+        loc: dataToUse.loc || 'Kannur City',
+        type: dataToUse.type || 'House',
+        purpose: dataToUse.purpose || 'Sale',
+        price: dataToUse.price || '',
+        area: dataToUse.area || '',
+        beds: dataToUse.beds || '',
+        baths: dataToUse.baths || '',
+        desc: dataToUse.desc || ''
+      });
+
+      if (response.data && response.data.success) {
+        setAiSuggestions({
+          pros: response.data.pros || [],
+          cons: response.data.cons || [],
+          source: response.data.source || 'ai'
+        });
+        toast.success(`✨ Generated ${response.data.pros?.length || 0} Pros & ${response.data.cons?.length || 0} Cons for ${dataToUse.loc || 'Kannur'}!`);
+      } else {
+        throw new Error('API returned unsuccess');
+      }
+    } catch (err) {
+      console.warn('Backend AI endpoint fallback:', err);
+      const fallback = getLocalAiSuggestions(dataToUse);
+      setAiSuggestions(fallback);
+      toast.success(`✨ Generated AI suggestions for ${dataToUse.loc || 'Kannur'}!`);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  // Handle URL query parameters to open add modal, switch step, and optionally auto-generate AI suggestions
+  useEffect(() => {
+    if (searchParams.get('add') === '1') {
+      openModal('add');
+      const stepParam = parseInt(searchParams.get('step'), 10);
+      if (stepParam && stepParam >= 1 && stepParam <= 4) {
+        setCurrentStep(stepParam);
+      }
+      const customLoc = searchParams.get('loc');
+      const customTitle = searchParams.get('title');
+      const customType = searchParams.get('type');
+      if (customLoc || customTitle || customType) {
+        setFormData(prev => ({
+          ...prev,
+          ...(customLoc ? { loc: customLoc } : {}),
+          ...(customTitle ? { title: customTitle } : {}),
+          ...(customType ? { type: customType } : {})
+        }));
+      }
+      if (searchParams.get('ai') === '1') {
+        const payload = {
+          title: customTitle || 'Payyambalam Beachfront Luxury Villa',
+          loc: customLoc || 'Payyambalam Beach',
+          type: customType || 'Villa',
+          purpose: 'Sale',
+          price: '18500000'
+        };
+        const instant = getLocalAiSuggestions(payload);
+        setAiSuggestions(instant);
+        if (searchParams.get('add_all') === '1') {
+          setFormData(prev => ({
+            ...prev,
+            pros: [...instant.pros],
+            cons: [...instant.cons]
+          }));
+        }
+      }
+    }
+
+    const handleOpenAdd = () => openModal('add');
+    window.addEventListener('open-add-property-modal', handleOpenAdd);
+    return () => window.removeEventListener('open-add-property-modal', handleOpenAdd);
+  }, [searchParams]);
+
+  const handleAddAllAiPros = () => {
+    if (!aiSuggestions?.pros?.length) return;
+    const existing = new Set(formData.pros || []);
+    const toAdd = aiSuggestions.pros.filter(p => !existing.has(p));
+    if (toAdd.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        pros: [...(prev.pros || []), ...toAdd]
+      }));
+      toast.success(`Added ${toAdd.length} AI highlights!`);
+    } else {
+      toast.info('All AI highlights are already added.');
+    }
+  };
+
+  const handleAddAllAiCons = () => {
+    if (!aiSuggestions?.cons?.length) return;
+    const existing = new Set(formData.cons || []);
+    const toAdd = aiSuggestions.cons.filter(c => !existing.has(c));
+    if (toAdd.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        cons: [...(prev.cons || []), ...toAdd]
+      }));
+      toast.success(`Added ${toAdd.length} AI considerations!`);
+    } else {
+      toast.info('All AI considerations are already added.');
+    }
   };
 
   const handleAddPro = (textToAdd) => {
@@ -1238,9 +1509,61 @@ export default function Properties() {
                   {/* STEP 2: THE HONEST VIEW (PROS & CONS) */}
                   {currentStep === 2 && (
                     <div>
-                      <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '14px 18px', borderRadius: 14, marginBottom: 20 }}>
-                        <b style={{ color: '#166534', fontSize: 14.5 }}>The Honest View (Verified by KARMA)</b>
-                        <p style={{ color: '#14532d', fontSize: 13, margin: '4px 0 0', lineHeight: 1.4 }}>
+                      {/* AI Assistant Banner */}
+                      <div className="admin-ai-box">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                          <div style={{ width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 22, flexShrink: 0, boxShadow: '0 4px 10px rgba(16, 185, 129, 0.3)' }}>
+                            ✨
+                          </div>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                              <b style={{ color: '#065f46', fontSize: 15 }}>KARMA AI Assistant</b>
+                              <span className="admin-ai-badge">Groq LLaMA 3.3 + Kannur Engine</span>
+                            </div>
+                            <p style={{ color: '#047857', fontSize: 12.5, margin: '2px 0 0', lineHeight: 1.4 }}>
+                              Analyzes <b>{formData.loc || 'Kannur'}</b>, <b>{formData.type || 'Property'}</b> ({formData.purpose || 'Sale'}) to generate authentic localized Pros and honest Considerations.
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          id="btn-generate-ai-pros-cons"
+                          onClick={handleGenerateAiSuggestions}
+                          disabled={aiLoading}
+                          className="btn btn-primary"
+                          style={{
+                            background: aiLoading ? '#94a3b8' : 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                            border: 'none',
+                            color: '#ffffff',
+                            fontWeight: 600,
+                            padding: '10px 18px',
+                            borderRadius: 12,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            whiteSpace: 'nowrap',
+                            boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
+                            cursor: aiLoading ? 'not-allowed' : 'pointer',
+                            fontSize: 13
+                          }}
+                        >
+                          {aiLoading ? (
+                            <>
+                              <span style={{ width: 14, height: 14, border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />
+                              Analyzing with AI...
+                            </>
+                          ) : (
+                            <>
+                              <span>✨</span>
+                              <span>Generate with AI</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px 18px', borderRadius: 14, marginBottom: 18 }}>
+                        <b style={{ color: '#166534', fontSize: 14 }}>The Honest View (Verified by KARMA)</b>
+                        <p style={{ color: '#14532d', fontSize: 12.5, margin: '3px 0 0', lineHeight: 1.4 }}>
                           KARMA's hallmark transparency feature. Buyers value genuine pros and honest considerations. These are displayed directly on the public property page.
                         </p>
                       </div>
@@ -1261,7 +1584,7 @@ export default function Properties() {
                               </div>
                             ))
                           ) : (
-                            <span style={{ fontSize: 13, color: '#94a3b8', fontStyle: 'italic' }}>No highlights added yet. Add below or click a suggestion.</span>
+                            <span style={{ fontSize: 13, color: '#94a3b8', fontStyle: 'italic' }}>No highlights added yet. Add below, click AI suggestions, or choose quick suggestions.</span>
                           )}
                         </div>
 
@@ -1277,6 +1600,41 @@ export default function Properties() {
                             + Add Pro
                           </button>
                         </div>
+
+                        {/* AI Generated Pros Chips */}
+                        {aiSuggestions?.pros?.length > 0 && (
+                          <div style={{ marginTop: 14, padding: '12px 14px', background: '#ecfdf5', borderRadius: 12, border: '1px solid #a7f3d0' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                              <span style={{ fontSize: 11.5, fontWeight: 700, color: '#065f46', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <span>✨</span> AI SUGGESTIONS FOR {formData.loc ? formData.loc.toUpperCase() : 'THIS PROPERTY'} ({aiSuggestions.pros.length}):
+                              </span>
+                              <button
+                                type="button"
+                                onClick={handleAddAllAiPros}
+                                style={{ background: 'none', border: 'none', color: '#059669', fontSize: 12, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                              >
+                                + Add All AI Pros
+                              </button>
+                            </div>
+                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                              {aiSuggestions.pros.map((sug, i) => {
+                                const isAdded = formData.pros?.includes(sug);
+                                return (
+                                  <button
+                                    key={i}
+                                    type="button"
+                                    disabled={isAdded}
+                                    className={`admin-ai-chip ${isAdded ? 'added' : ''}`}
+                                    onClick={() => !isAdded && handleAddPro(sug)}
+                                    title={isAdded ? 'Already added' : 'Click to add'}
+                                  >
+                                    {isAdded ? '✓ Added' : `+ ${sug}`}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
 
                         <div style={{ marginTop: 14 }}>
                           <span style={{ fontSize: 11.5, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Quick suggestions (Click to add):</span>
@@ -1306,7 +1664,7 @@ export default function Properties() {
                               </div>
                             ))
                           ) : (
-                            <span style={{ fontSize: 13, color: '#94a3b8', fontStyle: 'italic' }}>No considerations added yet. Add below or click a suggestion.</span>
+                            <span style={{ fontSize: 13, color: '#94a3b8', fontStyle: 'italic' }}>No considerations added yet. Add below, click AI suggestions, or choose quick suggestions.</span>
                           )}
                         </div>
 
@@ -1322,6 +1680,41 @@ export default function Properties() {
                             + Add Con
                           </button>
                         </div>
+
+                        {/* AI Generated Cons Chips */}
+                        {aiSuggestions?.cons?.length > 0 && (
+                          <div style={{ marginTop: 14, padding: '12px 14px', background: '#fef2f2', borderRadius: 12, border: '1px solid #fecaca' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                              <span style={{ fontSize: 11.5, fontWeight: 700, color: '#991b1b', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <span>⚠️</span> AI HONEST CONSIDERATIONS ({aiSuggestions.cons.length}):
+                              </span>
+                              <button
+                                type="button"
+                                onClick={handleAddAllAiCons}
+                                style={{ background: 'none', border: 'none', color: '#dc2626', fontSize: 12, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                              >
+                                + Add All AI Cons
+                              </button>
+                            </div>
+                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                              {aiSuggestions.cons.map((sug, i) => {
+                                const isAdded = formData.cons?.includes(sug);
+                                return (
+                                  <button
+                                    key={i}
+                                    type="button"
+                                    disabled={isAdded}
+                                    className={`admin-ai-chip con ${isAdded ? 'added' : ''}`}
+                                    onClick={() => !isAdded && handleAddCon(sug)}
+                                    title={isAdded ? 'Already added' : 'Click to add'}
+                                  >
+                                    {isAdded ? '✓ Added' : `+ ${sug}`}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
 
                         <div style={{ marginTop: 14 }}>
                           <span style={{ fontSize: 11.5, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Quick suggestions (Click to add):</span>

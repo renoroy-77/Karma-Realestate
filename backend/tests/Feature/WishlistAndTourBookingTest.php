@@ -91,6 +91,8 @@ class WishlistAndTourBookingTest extends TestCase
         $token = $this->getVerifiedLeadToken('tour.buyer@example.com');
         $property = Property::where('is_published', true)->firstOrFail();
 
+        $futureDate = now()->addDays(2)->format('Y-m-d');
+
         // 1. Submit site visit via /api/site-visits
         $visitRes = $this->withHeader('X-Lead-Token', $token)
             ->postJson('/api/site-visits', [
@@ -98,16 +100,16 @@ class WishlistAndTourBookingTest extends TestCase
                 'visitor_name' => 'Tour Requester',
                 'visitor_email' => 'tour.buyer@example.com',
                 'visitor_phone' => '9847123456',
-                'preferred_date' => '2026-09-30',
+                'preferred_date' => $futureDate,
                 'preferred_time_slot' => '04:00 PM',
-                'notes' => 'Test tour for 30/09/2026 at 04:00 PM',
+                'notes' => 'Test tour for upcoming date at 04:00 PM',
             ]);
 
         $visitRes->assertStatus(201)
             ->assertJson([
                 'success' => true,
                 'data' => [
-                    'preferred_date' => '2026-09-30',
+                    'preferred_date' => $futureDate,
                     'preferred_time_slot' => '04:00 PM',
                     'status' => 'pending',
                 ],
@@ -115,7 +117,7 @@ class WishlistAndTourBookingTest extends TestCase
 
         $this->assertDatabaseHas('site_visit_requests', [
             'property_id' => $property->id,
-            'preferred_date' => '2026-09-30',
+            'preferred_date' => $futureDate,
             'preferred_time_slot' => '04:00 PM',
         ]);
 
@@ -126,7 +128,7 @@ class WishlistAndTourBookingTest extends TestCase
                 'visitor_name' => 'Tour Requester Alias',
                 'visitor_email' => 'tour.buyer@example.com',
                 'visitor_phone' => '9847123456',
-                'preferred_date' => '2026-10-01',
+                'preferred_date' => $futureDate,
                 'preferred_time_slot' => '04:00 PM',
             ]);
 
