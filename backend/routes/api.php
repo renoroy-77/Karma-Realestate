@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\AiController as AdminAiController;
 use App\Http\Controllers\Api\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Api\Admin\BrochureController as AdminBrochureController;
 use App\Http\Controllers\Api\Admin\ConfidentialDocController as AdminConfidentialDocController;
@@ -11,7 +12,6 @@ use App\Http\Controllers\Api\Admin\PropertyMediaController as AdminPropertyMedia
 use App\Http\Controllers\Api\Admin\SiteSettingController as AdminSiteSettingController;
 use App\Http\Controllers\Api\Admin\SiteVisitManageController as AdminSiteVisitManageController;
 use App\Http\Controllers\Api\Admin\TestimonialManageController as AdminTestimonialController;
-use App\Http\Controllers\Api\Admin\AiController as AdminAiController;
 use App\Http\Controllers\Api\Public\HomeController;
 use App\Http\Controllers\Api\Public\OtpController;
 use App\Http\Controllers\Api\Public\PropertyController;

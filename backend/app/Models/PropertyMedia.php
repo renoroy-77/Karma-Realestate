@@ -67,14 +67,17 @@ class PropertyMedia extends Model
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
             if (str_contains($path, '/storage/')) {
                 $parts = explode('/storage/', $path);
-                return '/storage/' . end($parts);
+
+                return '/storage/'.end($parts);
             }
+
             return $path;
         }
 
         // Clean relative storage path
         $clean = ltrim(preg_replace('#^/?storage/#', '', $path), '/');
-        return '/storage/' . $clean;
+
+        return '/storage/'.$clean;
     }
 
     protected function thumbUrl(): Attribute

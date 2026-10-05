@@ -34,6 +34,7 @@ class WishlistAndTourBookingTest extends TestCase
         ]);
 
         $res->assertStatus(200);
+
         return $res->json('lead_token');
     }
 

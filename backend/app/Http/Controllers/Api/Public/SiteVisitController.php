@@ -57,9 +57,7 @@ class SiteVisitController extends Controller
             }
         }
 
-        $formattedDate = $visit->preferred_date instanceof \DateTimeInterface 
-            ? $visit->preferred_date->format('Y-m-d') 
-            : (string) $visit->preferred_date;
+        $formattedDate = $visit->preferred_date ? substr((string) $visit->preferred_date, 0, 10) : null;
 
         return response()->json([
             'success' => true,

@@ -12,6 +12,42 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
+/**
+ * @property int $id
+ * @property string $title
+ * @property string $slug
+ * @property string $purpose
+ * @property string $type
+ * @property float $price
+ * @property string|null $price_basis
+ * @property bool $negotiable
+ * @property float|null $land_area
+ * @property string|null $land_area_unit
+ * @property float|null $building_area_sqft
+ * @property int|null $bedrooms
+ * @property int|null $bathrooms
+ * @property array|null $amenities
+ * @property array|null $pros
+ * @property array|null $cons
+ * @property string|null $description
+ * @property string $locality
+ * @property string|null $district
+ * @property string|null $address_line
+ * @property float|null $latitude
+ * @property float|null $longitude
+ * @property string|null $virtual_tour_url
+ * @property string|null $brochure_url
+ * @property string|null $rera_number
+ * @property string|null $land_classification
+ * @property string $status
+ * @property bool $is_published
+ * @property bool $is_featured
+ * @property int $view_count
+ * @property string|null $owner_name
+ * @property string|null $owner_phone
+ * @property string|null $owner_email
+ * @property string|null $owner_notes
+ */
 class Property extends Model
 {
     use HasFactory, SoftDeletes;
@@ -270,8 +306,10 @@ class Property extends Model
                 }
                 if (str_contains($value, '/storage/')) {
                     $parts = explode('/storage/', $value);
-                    return '/storage/' . end($parts);
+
+                    return '/storage/'.end($parts);
                 }
+
                 return $value;
             },
         );
@@ -286,8 +324,10 @@ class Property extends Model
                 }
                 if (str_contains($value, '/storage/')) {
                     $parts = explode('/storage/', $value);
-                    return '/storage/' . end($parts);
+
+                    return '/storage/'.end($parts);
                 }
+
                 return $value;
             },
         );

@@ -529,7 +529,7 @@ class PropertySeeder extends Seeder
                 'owner_email' => 'siddharth@wayanadteahomes.com',
                 'owner_notes' => 'Planter family.',
                 'remark' => 'Boutique homestay license active.',
-            ]
+            ],
         ];
 
         $propertyImages = [
@@ -634,4 +634,3 @@ class PropertySeeder extends Seeder
         }
     }
 }
-

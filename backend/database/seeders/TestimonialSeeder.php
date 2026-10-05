@@ -74,7 +74,7 @@ class TestimonialSeeder extends Seeder
                 'rating' => 5,
                 'photo_url' => 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&auto=format&fit=crop&q=80',
                 'is_active' => true,
-            ]
+            ],
         ];
 
         foreach ($testimonials as $item) {
@@ -85,4 +85,3 @@ class TestimonialSeeder extends Seeder
         }
     }
 }
-
