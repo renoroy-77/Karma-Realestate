@@ -51,12 +51,12 @@ export default function About() {
         </section>
 
         {/* Stats Section */}
-        <section className="max-w-7xl mx-auto px-6 -mt-16 relative z-30 mb-24 md:mb-32">
-          <div className="bg-white rounded-3xl shadow-[0_20px_40px_rgba(0,0,0,0.06)] border border-gray-100 p-8 lg:p-14">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:divide-x divide-gray-100">
-              <div className="text-center px-4">
-                <div className="text-4xl md:text-5xl font-black text-[#C5A059] tracking-tighter mb-2">1.2k+</div>
-                <div className="text-gray-500 font-semibold text-sm uppercase tracking-wider">Happy Families</div>
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 -mt-16 relative z-30 mb-20 md:mb-32">
+          <div className="bg-white rounded-3xl shadow-[0_20px_40px_rgba(0,0,0,0.06)] border border-gray-100 p-5 sm:p-8 lg:p-14">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 md:divide-x divide-gray-100">
+              <div className="text-center px-1 sm:px-4">
+                <div className="text-3xl sm:text-4xl md:text-5xl font-black text-[#C5A059] tracking-tighter mb-2">1.2k+</div>
+                <div className="text-gray-500 font-semibold text-xs sm:text-sm uppercase tracking-wider">Happy Families</div>
               </div>
               <div className="text-center px-4">
                 <div className="text-4xl md:text-5xl font-black text-[#C5A059] tracking-tighter mb-2">850+</div>
@@ -78,8 +78,8 @@ export default function About() {
         <section className="max-w-7xl mx-auto px-6 mb-24 md:mb-40">
           <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
             <div className="order-2 lg:order-1 relative">
-              <div className="absolute inset-0 bg-[#eaf3ef] rounded-[40px] transform translate-x-4 translate-y-4 -z-10"></div>
-              <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=1000" alt="Office Team" className="rounded-[40px] shadow-xl w-full h-[500px] object-cover" />
+              <div className="absolute inset-0 bg-[#eaf3ef] rounded-[28px] sm:rounded-[40px] transform translate-x-3 translate-y-3 sm:translate-x-4 sm:translate-y-4 -z-10"></div>
+              <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=1000" alt="Office Team" className="rounded-[28px] sm:rounded-[40px] shadow-xl w-full h-[280px] sm:h-[400px] lg:h-[500px] object-cover" />
             </div>
             <div className="order-1 lg:order-2">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight mb-6">Our Story</h2>
@@ -116,8 +116,8 @@ export default function About() {
         </section>
 
         {/* Contact Form */}
-        <section className="bg-gradient-to-b from-gray-50 to-white py-24 px-6 border-t border-gray-100">
-          <div className="max-w-2xl mx-auto bg-white p-8 md:p-14 rounded-[40px] shadow-[0_10px_40px_rgba(0,0,0,0.04)] border border-gray-100">
+        <section className="bg-gradient-to-b from-gray-50 to-white py-16 sm:py-24 px-4 sm:px-6 border-t border-gray-100">
+          <div className="max-w-2xl mx-auto bg-white p-6 sm:p-10 md:p-14 rounded-[28px] sm:rounded-[40px] shadow-[0_10px_40px_rgba(0,0,0,0.04)] border border-gray-100">
             <div className="text-center mb-10">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight mb-3">Get in Touch</h2>
               <p className="text-gray-500 text-lg">Have a question? Drop us a message and we'll get back to you within 24 hours.</p>

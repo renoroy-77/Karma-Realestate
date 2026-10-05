@@ -104,7 +104,7 @@ export default function PropertiesPage() {
         <meta name="description" content="Browse verified houses, luxury villas, plots, and commercial properties across Kannur with KARMA Real Estate." />
       </Helmet>
       
-      <div className="props-page pb-30" style={{ paddingTop: '100px' }}>
+      <div className="props-page pb-30">
         
         {/* Categories Subnav */}
         <div className="props-subnav-wrap">

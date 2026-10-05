@@ -648,22 +648,40 @@ export default function AdminLogin() {
             flex-direction: column;
           }
           .login-left {
-            min-height: 480px;
+            min-height: 400px;
             flex: none;
           }
           .login-left-content {
-            padding: 40px 28px;
+            padding: 36px 24px;
           }
           .hero-headline {
-            font-size: 32px;
+            font-size: 30px;
           }
           .login-right {
-            padding: 36px 20px;
+            padding: 32px 20px;
           }
           .login-card {
             padding: 32px 24px;
             box-shadow: none;
             border: 1px solid #f1f5f9;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .login-left {
+            display: none;
+          }
+          .login-right {
+            padding: 24px 16px;
+            min-height: 100vh;
+            justify-content: center;
+          }
+          .login-card {
+            padding: 24px 18px;
+            border-radius: 20px;
+          }
+          .card-title {
+            font-size: 22px;
           }
         }
       `}</style>

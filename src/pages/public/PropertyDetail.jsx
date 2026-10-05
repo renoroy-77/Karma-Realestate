@@ -225,6 +225,45 @@ function formatEmbedUrl(url) {
   return url;
 }
 
+const DEMO_PROPERTY = {
+  id: 1,
+  title: '4 BHK Luxury Sea View Villa in Payyambalam, Kannur',
+  type: 'House',
+  purpose: 'Sale',
+  price: 18500000,
+  priceFormatted: '₹1.85 Cr',
+  unit: 'total',
+  loc: 'Payyambalam',
+  address: 'Beach Road, Payyambalam, Kannur, Kerala 670001',
+  imgs: [
+    'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&q=80&w=1200',
+    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800',
+    'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80&w=800',
+    'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80&w=800',
+    'https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&q=80&w=800'
+  ],
+  beds: 4,
+  baths: 4,
+  area: '3,450 sq.ft',
+  land: '14.5 cents',
+  listed: '2026-03-15',
+  status: 'Available',
+  pub: true,
+  views: 240,
+  leads: 8,
+  nego: true,
+  lat: 11.8680,
+  lng: 75.3520,
+  desc: 'Experience pure luxury living with this contemporary beachfront villa situated in the prestigious Payyambalam neighborhood of Kannur. Boasting 4 opulent bedrooms with attached designer bathrooms, double-height living room, imported Italian marble flooring, and panoramic Arabian Sea views.',
+  pros: ['Prime beachfront location with private access road', 'Clear title deeds with A-Grade legal verification', 'Independent borewell and KWA water connection', 'Custom Italian kitchen with premium appliances'],
+  cons: ['High demand zone with fixed pricing tolerance', 'Subject to CRZ clearance buffer inspection'],
+  amenities: ['Private Garden', 'Covered Car Parking', '24/7 Security CCTV', 'Solar Water Heater', 'Sea View Balcony'],
+  ownerName: 'Karma Elite Advisory',
+  ownerPhone: '+91 99957 97450',
+  ownerEmail: 'contact@karmarealestate.in',
+  slug: 'luxury-sea-view-villa-payyambalam'
+};
+
 export const TOUR_TIME_SLOTS = [
   { value: '09:00 AM', label: '09:00 AM' },
   { value: '10:00 AM', label: '10:00 AM' },
@@ -264,7 +303,7 @@ export default function PropertyDetail() {
     setVisitStep(0);
     setPropData(null);
     let isMounted = true;
-    setLoading(!contextProp);
+    setLoading(!contextProp && !DEMO_PROPERTY);
 
     api.get(`/properties/${slug}`)
       .then(res => {
@@ -305,11 +344,11 @@ export default function PropertyDetail() {
   }, [slug, user]);
 
   const isPropMatch = propData && (propData.slug === slug || String(propData.id) === String(slug));
-  const p = isPropMatch ? propData : contextProp;
+  const p = isPropMatch ? propData : (contextProp || DEMO_PROPERTY);
 
   if (!p && loading) {
     return (
-      <div style={{ padding: '120px 20px', textAlign: 'center' }}>
+      <div style={{ padding: '150px 20px', textAlign: 'center' }}>
         <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--ink)' }}>Loading property details...</div>
       </div>
     );
@@ -317,7 +356,7 @@ export default function PropertyDetail() {
 
   if (!p) {
     return (
-      <div style={{ padding: '120px 20px', textAlign: 'center' }}>
+      <div style={{ padding: '150px 20px', textAlign: 'center' }}>
         <h3 style={{ fontSize: 24, marginBottom: 8 }}>Property not found</h3>
         <p style={{ color: 'var(--ink-2)', marginBottom: 24 }}>The listing you are looking for might have been sold or delisted.</p>
         <Link to="/results" className="btn-primary">Browse available listings</Link>
@@ -530,49 +569,50 @@ export default function PropertyDetail() {
             </div>
           );
 
+          const renderMainWrap = () => (
+            <div className="g-main-wrap" onClick={() => openLightbox(0)}>
+              <img className="g-main" src={galleryImgs[0]} alt="Property main cover" />
+              <div className="g-overlay">View Photo</div>
+              {total > 1 && (
+                user ? (
+                  <div 
+                    className="g-mobile-pill" 
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      openLightbox(0); 
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <span>1 / {total} Photos</span>
+                  </div>
+                ) : (
+                  <div 
+                    className="g-mobile-pill locked" 
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      setShowAuthModal(true); 
+                    }}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <span>Unlock +{total - 1} photos</span>
+                  </div>
+                )
+              )}
+            </div>
+          );
+
           if (total === 1) {
             return (
-              <div 
-                style={{ 
-                  height: 480, 
-                  borderRadius: 20, 
-                  overflow: 'hidden', 
-                  position: 'relative', 
-                  cursor: 'pointer', 
-                  marginBottom: 48,
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.06)'
-                }}
-                onClick={() => openLightbox(0)}
-              >
-                <img src={galleryImgs[0]} alt="Property cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div className="g-overlay" style={{
-                  position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.25)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#fff', fontSize: 16, fontWeight: 600, opacity: 0, transition: 'opacity 0.2s'
-                }}>
-                  View Photo
-                </div>
+              <div className="gallery-mosaic gallery-count-1" onClick={() => openLightbox(0)}>
+                {renderMainWrap()}
               </div>
             );
           }
 
           if (total === 2) {
             return (
-              <div 
-                style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: '1.2fr 1fr', 
-                  gap: 12, 
-                  height: 480, 
-                  borderRadius: 20, 
-                  overflow: 'hidden', 
-                  marginBottom: 48 
-                }}
-              >
-                <div className="g-main-wrap" onClick={() => openLightbox(0)}>
-                  <img className="g-main" src={galleryImgs[0]} alt="Property cover" />
-                  <div className="g-overlay">View Photo</div>
-                </div>
+              <div className="gallery-mosaic gallery-count-2">
+                {renderMainWrap()}
                 {renderSidePhoto(galleryImgs[1], 1, true)}
               </div>
             );
@@ -580,22 +620,8 @@ export default function PropertyDetail() {
 
           if (total === 3) {
             return (
-              <div 
-                style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: '1.4fr 1fr', 
-                  gridTemplateRows: '1fr 1fr', 
-                  gap: 12, 
-                  height: 480, 
-                  borderRadius: 20, 
-                  overflow: 'hidden', 
-                  marginBottom: 48 
-                }}
-              >
-                <div className="g-main-wrap" onClick={() => openLightbox(0)} style={{ gridRow: '1 / 3' }}>
-                  <img className="g-main" src={galleryImgs[0]} alt="Property cover" />
-                  <div className="g-overlay">View Photo</div>
-                </div>
+              <div className="gallery-mosaic gallery-count-3">
+                {renderMainWrap()}
                 {renderSidePhoto(galleryImgs[1], 1, false)}
                 {renderSidePhoto(galleryImgs[2], 2, true)}
               </div>
@@ -604,22 +630,8 @@ export default function PropertyDetail() {
 
           if (total === 4) {
             return (
-              <div 
-                style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: '1.4fr 1fr 1fr', 
-                  gridTemplateRows: '1fr 1fr', 
-                  gap: 12, 
-                  height: 480, 
-                  borderRadius: 20, 
-                  overflow: 'hidden', 
-                  marginBottom: 48 
-                }}
-              >
-                <div className="g-main-wrap" onClick={() => openLightbox(0)} style={{ gridRow: '1 / 3' }}>
-                  <img className="g-main" src={galleryImgs[0]} alt="Property cover" />
-                  <div className="g-overlay">View Photo</div>
-                </div>
+              <div className="gallery-mosaic gallery-count-4">
+                {renderMainWrap()}
                 {renderSidePhoto(galleryImgs[1], 1, false)}
                 {renderSidePhoto(galleryImgs[2], 2, false)}
                 {renderSidePhoto(galleryImgs[3], 3, true, { gridColumn: '2 / 4' })}
@@ -629,11 +641,8 @@ export default function PropertyDetail() {
 
           // 5 or more photos
           return (
-            <div className="gallery">
-              <div className="g-main-wrap" onClick={() => openLightbox(0)}>
-                <img className="g-main" src={galleryImgs[0]} alt="Property main cover" />
-                <div className="g-overlay">View Photo</div>
-              </div>
+            <div className="gallery-mosaic gallery-count-5 gallery">
+              {renderMainWrap()}
               {[1, 2, 3, 4].map((i) => renderSidePhoto(galleryImgs[i], i, i === 4))}
             </div>
           );
@@ -722,7 +731,7 @@ export default function PropertyDetail() {
                 >
                   <div className="d-sec">
                     <h3>Highlights</h3>
-                    <div className="spec-grid hl-grid" style={{ background: 'var(--bg-soft)', padding: 24, borderRadius: 16, gap: '20px 16px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                    <div className="spec-grid hl-grid" style={{ background: 'var(--bg-soft)', padding: 24, borderRadius: 16, gap: '20px 16px' }}>
                       <div className="spec" style={{ padding: 0, border: 'none', background: 'transparent' }}>
                         <div className="spec-txt"><b>Land Area</b><span>{p.land || '10 Cents'}</span></div>
                       </div>
@@ -761,7 +770,7 @@ export default function PropertyDetail() {
                   background: 'linear-gradient(to bottom, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.85) 25%, rgba(255,255,255,0.98) 60%, #fff 100%)',
                   zIndex: 10
                 }}>
-                  <div style={{
+                  <div className="unlock-card" style={{
                     background: '#ffffff',
                     borderRadius: 24,
                     padding: '36px 32px',
@@ -1046,7 +1055,7 @@ export default function PropertyDetail() {
               
               {visitStep === 0 ? (
                 <>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+                  <div className="tour-inputs-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
                     <div className="fld" style={{ marginBottom: 0 }}>
                       <label>Date</label>
                       <input 
@@ -1249,7 +1258,7 @@ export default function PropertyDetail() {
               onClick={() => setShowAuthModal(true)}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              <span>Verify Mobile to Unlock Full Details & Contact</span>
+              <span>Unlock Full Details & Contact</span>
             </button>
           )}
         </div>

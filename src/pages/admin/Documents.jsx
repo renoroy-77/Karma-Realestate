@@ -360,38 +360,40 @@ export default function Documents() {
               {logsLoading ? (
                 <div style={{ padding: '30px', textAlign: 'center', color: 'var(--ink-2)' }}>Loading audit records...</div>
               ) : docLogs.length > 0 ? (
-                <table className="tbl" style={{ fontSize: 13 }}>
-                  <thead>
-                    <tr>
-                      <th>Timestamp</th>
-                      <th>Action</th>
-                      <th>User</th>
-                      <th>IP Address</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {docLogs.map((log) => {
-                      const dateStr = log.timestamp ? new Date(log.timestamp).toLocaleString('en-IN', {
-                        day: 'numeric', month: 'short', year: 'numeric',
-                        hour: '2-digit', minute: '2-digit', second: '2-digit'
-                      }) : 'N/A';
-                      const actionColor = log.action === 'uploaded' ? 'blue' : log.action === 'downloaded' ? 'green' : log.action === 'deleted' ? 'red' : 'amber';
-                      return (
-                        <tr key={log.id}>
-                          <td style={{ whiteSpace: 'nowrap', color: 'var(--ink-3)' }}>{dateStr}</td>
-                          <td>
-                            <span className={`pill ${actionColor}`}>{log.action}</span>
-                          </td>
-                          <td>
-                            <b>{log.admin_name}</b>
-                            {log.admin_email && <span style={{ display: 'block', fontSize: 11, color: 'var(--ink-3)' }}>{log.admin_email}</span>}
-                          </td>
-                          <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{log.ip_address || '127.0.0.1'}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                <div className="table-scroll">
+                  <table className="tbl" style={{ fontSize: 13 }}>
+                    <thead>
+                      <tr>
+                        <th>Timestamp</th>
+                        <th>Action</th>
+                        <th>User</th>
+                        <th>IP Address</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {docLogs.map((log) => {
+                        const dateStr = log.timestamp ? new Date(log.timestamp).toLocaleString('en-IN', {
+                          day: 'numeric', month: 'short', year: 'numeric',
+                          hour: '2-digit', minute: '2-digit', second: '2-digit'
+                        }) : 'N/A';
+                        const actionColor = log.action === 'uploaded' ? 'blue' : log.action === 'downloaded' ? 'green' : log.action === 'deleted' ? 'red' : 'amber';
+                        return (
+                          <tr key={log.id}>
+                            <td style={{ whiteSpace: 'nowrap', color: 'var(--ink-3)' }}>{dateStr}</td>
+                            <td>
+                              <span className={`pill ${actionColor}`}>{log.action}</span>
+                            </td>
+                            <td>
+                              <b>{log.admin_name}</b>
+                              {log.admin_email && <span style={{ display: 'block', fontSize: 11, color: 'var(--ink-3)' }}>{log.admin_email}</span>}
+                            </td>
+                            <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{log.ip_address || '127.0.0.1'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               ) : (
                 <div className="empty" style={{ padding: '24px' }}>
                   <b>No access events recorded yet</b>

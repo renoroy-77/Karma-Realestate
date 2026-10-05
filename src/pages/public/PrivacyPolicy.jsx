@@ -2,12 +2,12 @@ import { Helmet } from 'react-helmet-async';
 
 export default function PrivacyPolicy() {
   return (
-    <div className="nq-theme" style={{ padding: '120px 24px 60px' }}>
+    <div className="nq-theme privacy-page" style={{ padding: '150px 16px 60px' }}>
       <Helmet>
         <title>Privacy Policy | KARMA Real Estate</title>
       </Helmet>
       
-      <div style={{ maxWidth: 800, margin: '0 auto', background: '#fff', padding: 40, borderRadius: 24, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+      <div className="privacy-card" style={{ maxWidth: 800, margin: '0 auto', background: '#fff', borderRadius: 24, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
         <h1 style={{ fontSize: 32, marginBottom: 24, color: 'var(--ink)' }}>Privacy Policy</h1>
         
         <div style={{ fontSize: 16, lineHeight: 1.6, color: 'var(--ink-2)' }}>
