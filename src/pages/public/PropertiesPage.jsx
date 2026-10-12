@@ -7,7 +7,7 @@ import PurposeBadge from '../../components/ui/PurposeBadge';
 function PropertyCard({ p }) {
   const { wishlist, toggleWishlist } = useContext(AppDataContext);
   const inWishlist = wishlist.includes(p.id);
-  const rating = (4.5 + ((p.id % 5) * 0.1)).toFixed(1);
+  const rating = p.rating ? Number(p.rating).toFixed(1) : (4.5 + ((p.id % 5) * 0.1)).toFixed(1);
 
   return (
     <Link to={`/kannur/${p.type.toLowerCase()}/${p.slug || p.id}`} className="pcard">

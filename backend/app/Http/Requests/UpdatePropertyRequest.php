@@ -45,6 +45,7 @@ class UpdatePropertyRequest extends FormRequest
             'status' => 'sometimes|required|in:available,under_negotiation,sold,rented,leased,delisted',
             'is_published' => 'nullable|boolean',
             'is_featured' => 'nullable|boolean',
+            'rating' => 'nullable|numeric|between:1,5',
 
             // SEO Meta Tags
             'meta_title' => 'nullable|string|max:255',

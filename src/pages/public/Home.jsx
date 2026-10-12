@@ -58,7 +58,7 @@ const DEFAULT_LOC_PHOTOS = {
 function PropertyCard({ p }) {
   const { wishlist, toggleWishlist } = useContext(AppDataContext);
   const inWishlist = wishlist.includes(p.id);
-  const rating = (4.5 + ((p.id % 5) * 0.1)).toFixed(1);
+  const rating = p.rating ? Number(p.rating).toFixed(1) : (4.5 + ((p.id % 5) * 0.1)).toFixed(1);
 
   return (
     <Link to={`/kannur/${p.type.toLowerCase()}/${p.slug || p.id}`} className="pcard">
@@ -582,7 +582,7 @@ export default function Home() {
                               <div className="nq-mp-info">
                                 <b>{p.title}</b>
                                 <div className="nq-mp-meta">
-                                  <span>⭐ 4.8</span>
+                                  <span>⭐ {p.rating ? Number(p.rating).toFixed(1) : '4.8'}</span>
                                   <strong>{p.priceFormatted || formatIndianPrice(p.price, p.purpose)}</strong>
                                 </div>
                               </div>

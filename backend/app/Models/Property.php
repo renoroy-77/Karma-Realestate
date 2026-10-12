@@ -42,6 +42,7 @@ use Illuminate\Support\Str;
  * @property string $status
  * @property bool $is_published
  * @property bool $is_featured
+ * @property float|null $rating
  * @property int $view_count
  * @property string|null $owner_name
  * @property string|null $owner_phone
@@ -83,6 +84,7 @@ class Property extends Model
         'status',
         'is_published',
         'is_featured',
+        'rating',
         'view_count',
         'meta_title',
         'meta_description',
@@ -108,6 +110,7 @@ class Property extends Model
             'longitude' => 'decimal:7',
             'is_published' => 'boolean',
             'is_featured' => 'boolean',
+            'rating' => 'decimal:1',
             'view_count' => 'integer',
         ];
     }

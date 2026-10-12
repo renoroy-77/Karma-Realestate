@@ -194,6 +194,7 @@ export default function Properties() {
           pub: true,
           nego: false,
           featured: false,
+          rating: '4.8',
           lat: 11.8745,
           lng: 75.3704,
           address: '',
@@ -330,6 +331,7 @@ export default function Properties() {
         pub: p.pub !== undefined ? p.pub : true,
         nego: p.nego !== undefined ? p.nego : false,
         featured: p.featured !== undefined ? p.featured : false,
+        rating: p.rating !== undefined && p.rating !== null ? String(p.rating) : '4.8',
         lat: p.lat !== null && p.lat !== undefined ? p.lat : 11.8745,
         lng: p.lng !== null && p.lng !== undefined ? p.lng : 75.3704,
         address: p.address || '',
@@ -367,6 +369,7 @@ export default function Properties() {
         pub: true,
         nego: false,
         featured: false,
+        rating: '4.8',
         lat: 11.8745,
         lng: 75.3704,
         address: '',
@@ -934,7 +937,7 @@ export default function Properties() {
                   </td>
                   <td className="td-main">
                     <b>{p.title}</b>
-                    <span>{p.type} · {p.loc} · listed {p.listed}{p.rera ? ' · K-RERA ✓' : ''}{p.cls ? ' · ' + p.cls : ''}</span>
+                    <span>{p.type} · {p.loc} · listed {p.listed}{p.rera ? ' · K-RERA ✓' : ''}{p.cls ? ' · ' + p.cls : ''} · ⭐ {p.rating || 4.8}</span>
                   </td>
                   <td>
                     <span className={`pill ${p.purpose === 'Sale' ? 'blue' : p.purpose === 'Rent' ? 'green' : 'amber'}`}>
@@ -1183,7 +1186,7 @@ export default function Properties() {
                             </div>
                           </div>
 
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 4 }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12, marginTop: 4 }}>
                             <div className="fld">
                               <label>Price in Rupees (₹) *</label>
                               <input
@@ -1221,6 +1224,19 @@ export default function Properties() {
                                 <option value="Leased">Leased</option>
                                 <option value="Delisted">Delisted</option>
                               </select>
+                            </div>
+
+                            <div className="fld">
+                              <label>⭐ Rating (1.0 - 5.0)</label>
+                              <input
+                                type="number"
+                                step="0.1"
+                                min="1.0"
+                                max="5.0"
+                                value={formData.rating !== undefined ? formData.rating : '4.8'}
+                                onChange={e => setFormData({ ...formData, rating: e.target.value })}
+                                placeholder="4.8"
+                              />
                             </div>
                           </div>
                         </div>

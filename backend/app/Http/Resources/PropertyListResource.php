@@ -32,6 +32,8 @@ class PropertyListResource extends JsonResource
             'longitude' => $this->longitude ? (float) $this->longitude : null,
             'status' => $this->status,
             'is_published' => (bool) $this->is_published,
+            'is_featured' => (bool) $this->is_featured,
+            'rating' => $this->rating !== null ? (float) $this->rating : 4.8,
             'view_count' => (int) $this->view_count,
             'cover_photo' => $cover ? [
                 'thumb_url' => $cover->thumb_url,
