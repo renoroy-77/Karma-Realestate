@@ -41,16 +41,31 @@ function MapDismissListener({ onDismiss }) {
     const l1 = map.addListener('click', () => {
       onDismiss();
     });
-    const l2 = map.addListener('dragstart', () => {
-      onDismiss();
-    });
     return () => {
       if (window.google && google.maps && google.maps.event) {
         google.maps.event.removeListener(l1);
-        google.maps.event.removeListener(l2);
       }
     };
   }, [map, onDismiss]);
+  return null;
+}
+
+function ActiveMarkerPanController({ activeMarker, props }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map || !activeMarker) return;
+    const p = props.find(item => item.id === activeMarker);
+    if (p && p.lat && p.lng) {
+      map.panTo({ lat: p.lat, lng: p.lng });
+      if (window.innerWidth <= 768) {
+        setTimeout(() => {
+          try {
+            map.panBy(0, -60);
+          } catch (e) {}
+        }, 120);
+      }
+    }
+  }, [map, activeMarker, props]);
   return null;
 }
 
@@ -189,8 +204,7 @@ export default function Results() {
         e.target.closest('.nq-ref-popup') || 
         e.target.closest('.nq-marker') || 
         e.target.closest('.nq-red-pin') || 
-        e.target.closest('.nq-mf-btn-group') || 
-        e.target.closest('.nq-bottom-active-card')
+        e.target.closest('.nq-mf-btn-group')
       ) {
         return;
       }
@@ -450,6 +464,7 @@ export default function Results() {
               <BoundsUpdater setMapBounds={setMapBounds} />
               <MapDismissListener onDismiss={() => setActiveMarker(null)} />
               <MapCenterController center={activeCenter} />
+              <ActiveMarkerPanController activeMarker={activeMarker} props={props} />
               {sortedProps.map(p => (
                 p.lat && p.lng && (
                   <AdvancedMarker 
@@ -488,8 +503,8 @@ export default function Results() {
                                 top: 8,
                                 right: 8,
                                 zIndex: 12,
-                                width: 26,
-                                height: 26,
+                                width: 28,
+                                height: 28,
                                 borderRadius: '50%',
                                 background: 'rgba(0,0,0,0.65)',
                                 color: '#ffffff',
@@ -498,25 +513,33 @@ export default function Results() {
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                fontSize: '12px',
+                                fontSize: '13px',
                                 boxShadow: '0 2px 6px rgba(0,0,0,0.25)'
                               }}
                             >
                               ✕
                             </button>
-                            <Link to={`/kannur/${p.type.toLowerCase()}/${p.slug || p.id}`} className="nq-ref-card" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+                            <Link to={`/kannur/${(p.type || 'property').toLowerCase()}/${p.slug || p.id}`} className="nq-ref-card" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
                               <div className="nq-ref-img-wrap">
-                                <PurposeBadge purpose={p.purpose} style={{ top: 8, left: 8, padding: '2px 6px', fontSize: '10px' }} />
+                                <PurposeBadge purpose={p.purpose} style={{ top: 8, left: 8, padding: '3px 8px', fontSize: '10px' }} />
                                 <img src={p.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt={p.title} />
                                 <div className="nq-ref-price-tag">{p.priceFormatted || formatIndianPrice(p.price, p.purpose)}</div>
                               </div>
                               <div className="nq-ref-body">
-                                <div className="nq-ref-title">{p.title}</div>
-                                <div className="nq-ref-loc">{p.loc}, Kannur</div>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 4 }}>
+                                  <div className="nq-ref-title" style={{ margin: 0 }}>{p.title}</div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 700, color: '#92400e', background: '#fef3c7', padding: '1px 6px', borderRadius: 4, flexShrink: 0 }}>
+                                    ★ {p.rating ? Number(p.rating).toFixed(1) : (4.5 + ((p.id % 5) * 0.1)).toFixed(1)}
+                                  </div>
+                                </div>
+                                <div className="nq-ref-loc" style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                                  <span>{p.loc}, Kannur</span>
+                                  {p.type && <span className="nq-type-chip">{p.type}</span>}
+                                </div>
                                 <div className="nq-ref-specs">
                                   {p.beds && <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path></svg> {p.beds} Beds</span>}
                                   {p.baths && <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12h20M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8M4 12v-4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4M9 6v6M15 6v6"/></svg> {p.baths} Baths</span>}
-                                  {p.area && <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16v16H4z"/><path d="M4 14h16M14 4v16"/></svg> {p.area}</span>}
+                                  {(p.area || p.land) && <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16v16H4z"/><path d="M4 14h16M14 4v16"/></svg> {p.area || p.land}</span>}
                                 </div>
                               </div>
                             </Link>
@@ -534,30 +557,6 @@ export default function Results() {
             </Map>
             <BoundsUpdater setMapBounds={setMapBounds} />
           </APIProvider>
-          {activeMarker && (() => {
-            const activeProp = props.find(p => p.id === activeMarker);
-            if (!activeProp) return null;
-            return (
-              <div className="nq-bottom-active-card">
-                <Link to={`/kannur/${activeProp.type.toLowerCase()}/${activeProp.slug || activeProp.id}`} className="nq-bac-inner">
-                  <button className="nq-bac-close" onClick={(e) => { e.preventDefault(); setActiveMarker(null); }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                  </button>
-                  <div className="nq-bac-img">
-                    <img src={activeProp.imgs?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00'} alt="" />
-                  </div>
-                  <div className="nq-bac-info">
-                    <h4>{activeProp.title}</h4>
-                    <p>{activeProp.type} in {activeProp.loc}</p>
-                    <div className="nq-bac-meta">
-                       <b>{activeProp.priceFormatted || formatIndianPrice(activeProp.price, activeProp.purpose)}</b>
-                       <span>★ {(4.5 + ((activeProp.id % 5) * 0.1)).toFixed(1)} (Verified)</span>
-                    </div>
-                  </div>
-                </Link>
-              </div>
-            );
-          })()}
         </div>
       </div>
     </section>
