@@ -59,15 +59,13 @@ function CardCarousel({ children }) {
 
   return (
     <div className="carousel-wrap">
-      <button className="c-nav left" onClick={() => scroll('left')} aria-label="Previous">
+      <button type="button" className="c-nav left" onClick={() => scroll('left')} aria-label="Previous">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
       </button>
-      <div className="carousel" ref={scrollRef}>
-        <div className="card-row">
-          {children}
-        </div>
+      <div className="card-row" ref={scrollRef}>
+        {children}
       </div>
-      <button className="c-nav right" onClick={() => scroll('right')} aria-label="Next">
+      <button type="button" className="c-nav right" onClick={() => scroll('right')} aria-label="Next">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg>
       </button>
     </div>
